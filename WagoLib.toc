@@ -1,0 +1,8 @@
+## Interface: 90005
+## Title: WagoLib
+## Version: 1.0
+## SavedVariables: WagoLibSV
+## LoadOnDemand: 0
+## Author: Wago Addons Team
+
+WagoLib.lua
