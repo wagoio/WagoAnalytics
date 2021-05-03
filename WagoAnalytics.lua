@@ -29,13 +29,13 @@ WagoAnalytics:Error("Variable was expected to be defined, but wasn't")
 local WagoAnalytics = LibStub:NewLibrary("WagoAnalytics", 1)
 if not WagoAnalytics then return end -- Version is already loaded
 
-local playerClass, playerRegion, playerSpecs, playerMinLevel, playerMaxLevel, playerRace, playerFaction, playerAddons
+local playerClass, playerRegion, playerSpecs, playerMinLevel, playerMaxLevel, playerRace, playerFaction, playerAddons, playerLocale
 
 do
 	local tostring, ipairs, debugstack, debuglocals, date, tIndexOf, tinsert, tremove =
 		tostring, ipairs, debugstack, debuglocals, date, tIndexOf, table.insert, table.remove
-	local UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, IsLoggedIn, UnitClass, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo =
-		UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, IsLoggedIn, UnitClass, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo
+	local GetLocale, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, IsLoggedIn, UnitClass, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo =
+		GetLocale, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, IsLoggedIn, UnitClass, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo
 
 	local function handleError(errorMessage, isSimple)
 		errorMessage = tostring(errorMessage)
@@ -89,6 +89,7 @@ do
 			_, playerRace = UnitRace("player")
 			playerMinLevel = UnitLevel("player")
 			playerMaxLevel = playerMinLevel
+			playerLocale = GetLocale()
 			playerAddons = {}
 			for i = 1, GetNumAddOns() do
 				local name, _, _, enabled = GetAddOnInfo(i)
@@ -164,7 +165,7 @@ do
 end
 
 do
-	local gsub, format, random = string.sub, string.format, math.random
+	local gsub, format, random = string.gsub, string.format, math.random
 	local SV
 
 	function wagoPrototype:Save()
@@ -173,9 +174,9 @@ do
 				return format("%x", random(0, 0xf))
 			end)
 			WagoAnalyticsSV[uuid] = {
-				addons = {},
-				errors = {},
+				addons = playerAddons,
 				playerData = {
+					locale = playerLocale,
 					class = playerClass,
 					region = playerRegion,
 					specs = playerSpecs,
@@ -187,11 +188,17 @@ do
 			}
 			SV = WagoAnalyticsSV[uuid]
 		end
-		SV[self.addon] = {
-			counters = self.counters,
-			gauges = self.gauges,
-			errors = self.errors
-		}
+		local dat = {}
+		if #self.counters > 0 then
+			dat.counters = self.counters
+		end
+		if #self.gauges > 0 then
+			dat.gauges = self.gauges
+		end
+		if #self.errors > 0 then
+			dat.errors = self.errors
+		end
+		SV[self.addon] = dat
 	end
 end
 
@@ -216,7 +223,7 @@ do
 		}, {
 			__index = wagoPrototype
 		})
-		addons[addon] = obj
+		playerAddons[addon] = obj
 		return obj
 	end
 end
