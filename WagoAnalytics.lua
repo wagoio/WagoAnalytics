@@ -51,7 +51,7 @@ do
 				WagoAnalyticsSV = {}
 			end
 			local uuid = gsub("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "x", function()
-				return format('%x', random(0, 0xf))
+				return format("%x", random(0, 0xf))
 			end)
 			local _, playerClass = UnitClass("player")
 			local currentSpecName, currentSpec = "Unknown", GetSpecialization()
