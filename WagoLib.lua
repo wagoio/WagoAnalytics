@@ -24,15 +24,10 @@ WagoLib:Gauge("SomeGauge")
 WagoLib:Error("Variable was expected to be defined, but wasn't")
 --]]
 
-local MAJOR, MINOR = "LibWago", 1
+local MAJOR, MINOR = "WagoLib", 1
 
-local WagoLib
-if WagoLib then
-	WagoLib = LibStub:NewLibrary(MAJOR, MINOR)
-	if not WagoLib then return end -- Version is already loaded
-else
-	WagoLib = {}
-end
+local WagoLib = LibStub:NewLibrary(MAJOR, MINOR)
+if not WagoLib then return end -- Version is already loaded
 
 local SV = {}
 
@@ -43,8 +38,8 @@ do
 	local frame = CreateFrame("Frame")
 	frame:RegisterEvent("PLAYER_LOGIN")
 	frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
-	frame:RegisterEvent("PLAYER_LEVEL_UIP")
-	function frame:OnEvent(_, event, arg1)
+	frame:RegisterEvent("PLAYER_LEVEL_UP")
+	frame:SetScript("OnEvent", function(self, event, arg1)
 		if event == "PLAYER_LOGIN" then
 			if not IsLoggedIn() then
 				return
@@ -56,8 +51,10 @@ do
 				return format('%x', random(0, 0xf))
 			end)
 			local _, playerClass = UnitClass("player")
-			local currentSpec = GetSpecialization()
-			local _, currentSpecName = currentSpec and GetSpecializationInfo(currentSpec) or nil, "Unknown"
+			local currentSpecName, currentSpec = "Unknown", GetSpecialization()
+			if currentSpec then
+				_, currentSpecName = GetSpecializationInfo(currentSpec)
+			end
 			WagoLibSV[uuid] = {
 				playerData = {
 					class = playerClass,
@@ -68,21 +65,23 @@ do
 			}
 			SV = WagoLibSV[uuid]
 		elseif event == "PLAYER_SPECIALIZATION_CHANGED" then
-			local currentSpec = GetSpecialization()
-			local _, currentSpecName = currentSpec and GetSpecializationInfo(currentSpec) or nil, "Unknown"
+			local currentSpecName, currentSpec = "Unknown", GetSpecialization()
+			if currentSpec then
+				_, currentSpecName = GetSpecializationInfo(currentSpec)
+			end
 			if not tIndexOf(SV.playerData.specs, currentSpecName) then
 				tinsert(SV.playerData.specs, currentSpecName)
 			end
 		elseif event == "PLAYER_LEVEL_UP" then
 			SV.playerData.levelMax = arg1
 		end
-	end
+	end)
 end
 
 local wagoPrototype = {}
 
 function wagoPrototype:Counter(name, increment)
-	self.counters[name] = (self.counters[name] or 0) + increment
+	self.counters[name] = (self.counters[name] or 0) + (increment or 1)
 	self:Save()
 end
 
@@ -96,8 +95,8 @@ do
 
 	function wagoPrototype:Error(error)
 		tinsert(self.errors, {
-			error: error,
-			breadcrumb: self.breadcrumbs
+			error = error,
+			breadcrumb = self.breadcrumbs
 		})
 		self:Save()
 	end
@@ -121,7 +120,7 @@ function wagoPrototype:Save()
 	end
 	SV[self.addon] = {
 		counters = self.counters,
-		guages = self.guages,
+		gauges = self.gauges,
 		errors = self.errors
 	}
 end
@@ -140,8 +139,8 @@ do
 		end
 		options.breadcrumbCount = mmin(options.breadcrumbCount, 50)
 		local obj = setmetatable({
-			addon: addon,
-			options: options,
+			addon = addon,
+			options = options,
 			counters = {},
 			gauges = {},
 			errors = {},
