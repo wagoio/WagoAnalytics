@@ -38,7 +38,7 @@ local SV = {}
 
 do
 	local gsub, format, random, tIndexOf, tinsert = string.gsub, string.format, math.random, tIndexOf, table.insert
-	local UnitClass, UnitLevel, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo = UnitClass, UnitLevel, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo
+	local CreateFrame, IsLoggedIn, UnitClass, UnitLevel, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo = CreateFrame, IsLoggedIn, UnitClass, UnitLevel, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo
 
 	local frame = CreateFrame("Frame")
 	frame:RegisterEvent("PLAYER_LOGIN")
@@ -52,7 +52,7 @@ do
 			if not WagoLibSV then
 				WagoLibSV = {}
 			end
-			local uuid = gsub("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "[xy]", function()
+			local uuid = gsub("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "x", function()
 				return format('%x', random(0, 0xf))
 			end)
 			local _, playerClass = UnitClass("player")
@@ -107,7 +107,7 @@ do
 	local tremove, tinsert = table.remove, table.insert
 
 	function wagoPrototype:Breadcrumb(data)
-		if #self.breadcrumbs > 50 then
+		if #self.breadcrumbs > self.options.breadcrumbCount then
 			tremove(self.breadcrumbs, 1)
 		end
 		tinsert(self.breadcrumbs, data)
@@ -141,6 +141,7 @@ do
 		options.breadcrumbCount = mmin(options.breadcrumbCount, 50)
 		local obj = setmetatable({
 			addon: addon,
+			options: options,
 			counters = {},
 			gauges = {},
 			errors = {},
