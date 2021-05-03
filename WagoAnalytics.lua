@@ -119,11 +119,17 @@ end
 local wagoPrototype = {}
 
 function wagoPrototype:Counter(name, increment)
+	if #self.counters > 512 then
+		return false
+	end
 	self.counters[name] = (self.counters[name] or 0) + (increment or 1)
 	self:Save()
 end
 
 function wagoPrototype:Gauge(name)
+	if #self.gauges > 512 then
+		return false
+	end
 	self.gauges[name] = true
 	self:Save()
 end
