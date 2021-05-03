@@ -35,16 +35,43 @@ if not WagoAnalytics then return end -- Version is already loaded
 local SV = {}
 
 do
-	local gsub, format, random, tIndexOf, tinsert = string.gsub, string.format, math.random, tIndexOf, table.insert
-	local GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, IsLoggedIn, UnitClass, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo =
-		GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, IsLoggedIn, UnitClass, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo
+	local tostring, ipairs, debugstack, debuglocals, date, gsub, format, random, tIndexOf, tinsert, tremove =
+		tostring, ipairs, debugstack, debuglocals, date, string.gsub, string.format, math.random, tIndexOf, table.insert, table.remove
+	local UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, IsLoggedIn, UnitClass, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo =
+		UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, IsLoggedIn, UnitClass, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo
+
+	local function handleError(errorMessage, isSimple)
+		errorMessage = tostring(errorMessage)
+		for _, err in ipairs(SV.errors) do
+			if err.message == errorMessage then
+				return
+			end
+		end
+		if isSimple then
+			tinsert(SV.errors, {
+				addon = string.match(errorMessage, "AddOns\\([^\\]+)\\") or "Unknown",
+				message = errorMessage
+			})
+		else
+			tinsert(SV.errors, {
+				addon = string.match(errorMessage, "AddOns\\([^\\]+)\\") or "Unknown",
+				message = errorMessage,
+				stack = debugstack(3),
+				locals = (InCombatLockdown() or UnitAffectingCombat("player")) and "InCombatSkipped" or debuglocals(3)
+			})
+		end
+	end
+	_G.seterrorhandler(handleError)
 
 	local frame = CreateFrame("Frame")
 	frame:RegisterEvent("PLAYER_LOGIN")
 	frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 	frame:RegisterEvent("PLAYER_LEVEL_UP")
 	frame:RegisterEvent("ADDON_LOADED")
-	frame:SetScript("OnEvent", function(self, event, arg1)
+	frame:RegisterEvent("ADDON_ACTION_BLOCKED")
+	frame:RegisterEvent("ADDON_ACTION_FORBIDDEN")
+	frame:RegisterEvent("LUA_WARNING")
+	frame:SetScript("OnEvent", function(self, event, arg1, arg2)
 		if event == "PLAYER_LOGIN" then
 			if not IsLoggedIn() then
 				return
@@ -70,6 +97,7 @@ do
 			end
 			WagoAnalyticsSV[uuid] = {
 				addons = {},
+				errors = {},
 				playerData = {
 					class = playerClass,
 					region = GetCurrentRegionName(),
@@ -92,6 +120,10 @@ do
 			SV.playerData.levelMax = arg1
 		elseif event == "ADDON_LOADED" then
 			SV.addons[arg1] = GetAddOnMetadata(arg1, "Version")
+		elseif event == "ADDON_ACTION_BLOCKED" or event == "ADDON_ACTION_FORBIDDEN" then
+			handleError(("[%s] AddOn '%s' tried to call the protected function '%s'."):format(event, arg1 or "<name>", arg2 or "<func>"))
+		elseif event == "LUA_WARNING" then
+			handleError(arg2, true)
 		end
 	end)
 end
