@@ -94,9 +94,12 @@ function wagoPrototype:Gauge(name)
 end
 
 do
-	local tinsert = table.insert
+	local tinsert, type = table.insert, type
 
 	function wagoPrototype:Error(error)
+		if type(error) == "string" and #error > 1024 then
+			error = error:sub(0, 1021) .. "..."
+		end
 		tinsert(self.errors, {
 			error = error,
 			breadcrumb = self.breadcrumbs
@@ -106,11 +109,14 @@ do
 end
 
 do
-	local tremove, tinsert = table.remove, table.insert
+	local tremove, tinsert, type = table.remove, table.insert, type
 
 	function wagoPrototype:Breadcrumb(data)
 		if #self.breadcrumbs > self.options.breadcrumbCount then
 			tremove(self.breadcrumbs, 1)
+		end
+		if type(data) == "string" and #data > 255 then
+			data = data:sub(0, 252) .. "..."
 		end
 		tinsert(self.breadcrumbs, data)
 		self:Save()
