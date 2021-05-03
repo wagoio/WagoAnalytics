@@ -1,7 +1,6 @@
-local MAJOR, MINOR = "WagoLib", 0
-local WagoLib = LibStub:NewLibrary(MAJOR, MINOR)
+local WagoAnalytics = LibStub:NewLibrary("WagoAnalytics", 0)
 
-function WagoLib:Register()
+function WagoAnalytics:Register()
 	return setmetatable({}, {
 		__index = {
 			Counter = function() end,

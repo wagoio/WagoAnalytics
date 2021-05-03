@@ -1,4 +1,7 @@
 --[[
+Include the Shim.lua inside of your AddOn for when users decide to opt-out of contributing analytics data.
+Simply drop the file inside of your AddOn, and include it in your TOC file
+
 Example Usage:
 
 Options = {
@@ -48,7 +51,7 @@ do
 				WagoAnalyticsSV = {}
 			end
 			local uuid = gsub("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "x", function()
-				return format('%x', random(0, 0xf))
+				return format("%x", random(0, 0xf))
 			end)
 			local _, playerClass = UnitClass("player")
 			local currentSpecName, currentSpec = "Unknown", GetSpecialization()
