@@ -33,7 +33,7 @@ local SV = {}
 
 do
 	local gsub, format, random, tIndexOf, tinsert = string.gsub, string.format, math.random, tIndexOf, table.insert
-	local CreateFrame, IsLoggedIn, UnitClass, UnitLevel, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo = CreateFrame, IsLoggedIn, UnitClass, UnitLevel, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo
+	local CreateFrame, IsLoggedIn, UnitClass, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo = CreateFrame, IsLoggedIn, UnitClass, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo
 
 	local frame = CreateFrame("Frame")
 	frame:RegisterEvent("PLAYER_LOGIN")
@@ -55,12 +55,15 @@ do
 			if currentSpec then
 				_, currentSpecName = GetSpecializationInfo(currentSpec)
 			end
+			local _, playerRace = UnitRace("player")
 			WagoLibSV[uuid] = {
 				playerData = {
 					class = playerClass,
 					region = GetCurrentRegionName(),
 					specs = {currentSpecName},
-					levelMin = UnitLevel("player")
+					levelMin = UnitLevel("player"),
+					race = playerRace,
+					faction = GetPlayerFactionGroup("player")
 				}
 			}
 			SV = WagoLibSV[uuid]
