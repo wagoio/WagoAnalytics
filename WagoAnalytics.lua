@@ -36,12 +36,14 @@ local SV = {}
 
 do
 	local gsub, format, random, tIndexOf, tinsert = string.gsub, string.format, math.random, tIndexOf, table.insert
-	local CreateFrame, IsLoggedIn, UnitClass, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo = CreateFrame, IsLoggedIn, UnitClass, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo
+	local GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, IsLoggedIn, UnitClass, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo =
+		GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, IsLoggedIn, UnitClass, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo
 
 	local frame = CreateFrame("Frame")
 	frame:RegisterEvent("PLAYER_LOGIN")
 	frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 	frame:RegisterEvent("PLAYER_LEVEL_UP")
+	frame:RegisterEvent("ADDON_LOADED")
 	frame:SetScript("OnEvent", function(self, event, arg1)
 		if event == "PLAYER_LOGIN" then
 			if not IsLoggedIn() then
@@ -59,7 +61,15 @@ do
 				_, currentSpecName = GetSpecializationInfo(currentSpec)
 			end
 			local _, playerRace = UnitRace("player")
+			local addons = {}
+			for i = 1, GetNumAddOns() do
+				local name, _, _, enabled = GetAddOnInfo(i)
+				if enabled then
+					addons[name] = GetAddOnMetadata(i, "Version")
+				end
+			end
 			WagoAnalyticsSV[uuid] = {
+				addons = {},
 				playerData = {
 					class = playerClass,
 					region = GetCurrentRegionName(),
@@ -80,6 +90,8 @@ do
 			end
 		elseif event == "PLAYER_LEVEL_UP" then
 			SV.playerData.levelMax = arg1
+		elseif event == "ADDON_LOADED" then
+			SV.addons[arg1] = GetAddOnMetadata(arg1, "Version")
 		end
 	end)
 end
