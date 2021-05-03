@@ -1,4 +1,7 @@
 --[[
+Include the Shim.lua inside of your AddOn for when users decide to opt-out of contributing analytics data.
+Simply drop the file inside of your AddOn, and include it in your TOC file
+
 Example Usage:
 
 Options = {
