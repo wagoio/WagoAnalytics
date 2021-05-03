@@ -140,13 +140,10 @@ do
 	local mmin, setmetatable = math.min, setmetatable
 
 	function WagoLib:Register(addon, options)
-		if not options then
-			options = {
-				breadcrumbCount = 20,
-				reportErrors = true
-			}
+		options.breadcrumbCount = mmin(options.breadcrumbCount or 20, 50)
+		if options.reportErrors == nil then
+			options.reportErrors = true
 		end
-		options.breadcrumbCount = mmin(options.breadcrumbCount, 50)
 		local obj = setmetatable({
 			addon = addon,
 			options = options,
