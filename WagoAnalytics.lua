@@ -6,28 +6,28 @@ Options = {
 	reportErrors = true, -- Default: true. Should we report errors?
 }
 
-local WagoLib = LibStub("WagoLib"):Register("<Your Wago addon ID>") -- 2nd argument is an optional list of options
+local WagoAnalytics = LibStub("WagoAnalytics"):Register("<Your Wago addon ID>") -- 2nd argument is an optional list of options
 
 -- Add breadcrumb data with arg1 table of information
-WagoLib:Breadcrumb({
+WagoAnalytics:Breadcrumb({
 	someData = "Hello",
 	otherData = "World"
 })
 
 -- Increments the counter arg1 by arg2 amount
-WagoLib:Counter("SomeCounter", 50)
+WagoAnalytics:Counter("SomeCounter", 50)
 
 -- Set a boolean arg1 value to true
-WagoLib:Gauge("SomeGauge")
+WagoAnalytics:Gauge("SomeGauge")
 
 -- Throw a custom error message arg1. This includes the previous breadcrumbs automatically.
-WagoLib:Error("Variable was expected to be defined, but wasn't")
+WagoAnalytics:Error("Variable was expected to be defined, but wasn't")
 --]]
 
-local MAJOR, MINOR = "WagoLib", 1
+local MAJOR, MINOR = "WagoAnalytics", 1
 
-local WagoLib = LibStub:NewLibrary(MAJOR, MINOR)
-if not WagoLib then return end -- Version is already loaded
+local WagoAnalytics = LibStub:NewLibrary(MAJOR, MINOR)
+if not WagoAnalytics then return end -- Version is already loaded
 
 local SV = {}
 
@@ -44,8 +44,8 @@ do
 			if not IsLoggedIn() then
 				return
 			end
-			if not WagoLibSV then
-				WagoLibSV = {}
+			if not WagoAnalyticsSV then
+				WagoAnalyticsSV = {}
 			end
 			local uuid = gsub("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "x", function()
 				return format('%x', random(0, 0xf))
@@ -56,7 +56,7 @@ do
 				_, currentSpecName = GetSpecializationInfo(currentSpec)
 			end
 			local _, playerRace = UnitRace("player")
-			WagoLibSV[uuid] = {
+			WagoAnalyticsSV[uuid] = {
 				playerData = {
 					class = playerClass,
 					region = GetCurrentRegionName(),
@@ -66,7 +66,7 @@ do
 					faction = GetPlayerFactionGroup("player")
 				}
 			}
-			SV = WagoLibSV[uuid]
+			SV = WagoAnalyticsSV[uuid]
 		elseif event == "PLAYER_SPECIALIZATION_CHANGED" then
 			local currentSpecName, currentSpec = "Unknown", GetSpecialization()
 			if currentSpec then
@@ -139,7 +139,7 @@ local addons = {}
 do
 	local mmin, setmetatable = math.min, setmetatable
 
-	function WagoLib:Register(addon, options)
+	function WagoAnalytics:Register(addon, options)
 		if not options then
 			options = {}
 		end

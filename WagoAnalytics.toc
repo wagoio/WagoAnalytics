@@ -1,10 +1,10 @@
 ## Interface: 90005
-## Title: WagoLib
+## Title: WagoAnalytics
 ## Version: 1.0
-## SavedVariables: WagoLibSV
+## SavedVariables: WagoAnalyticsSV
 ## LoadOnDemand: 0
 ## Author: Wago Addons Team
 
 Libs\LibStub\LibStub.lua
 
-WagoLib.lua
+WagoAnalytics.lua
