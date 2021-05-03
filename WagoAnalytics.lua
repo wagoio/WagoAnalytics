@@ -26,14 +26,10 @@ WagoAnalytics:Gauge("SomeGauge")
 -- Throw a custom error message arg1. This includes the previous breadcrumbs automatically.
 WagoAnalytics:Error("Variable was expected to be defined, but wasn't")
 --]]
-
-local MAJOR, MINOR = "WagoAnalytics", 1
-
-local WagoAnalytics = LibStub:NewLibrary(MAJOR, MINOR)
+local WagoAnalytics = LibStub:NewLibrary("WagoAnalytics", 1)
 if not WagoAnalytics then return end -- Version is already loaded
 
-local SV = {}
-local addons = {}
+local SV, addons = {}, {}
 
 do
 	local tostring, ipairs, debugstack, debuglocals, date, gsub, format, random, tIndexOf, tinsert, tremove =
