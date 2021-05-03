@@ -165,7 +165,7 @@ do
 end
 
 do
-	local gsub, format, random = string.sub, string.format, math.random
+	local gsub, format, random = string.gsub, string.format, math.random
 	local SV
 
 	function wagoPrototype:Save()
@@ -218,7 +218,7 @@ do
 		}, {
 			__index = wagoPrototype
 		})
-		addons[addon] = obj
+		playerAddons[addon] = obj
 		return obj
 	end
 end
