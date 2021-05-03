@@ -33,6 +33,7 @@ local WagoAnalytics = LibStub:NewLibrary(MAJOR, MINOR)
 if not WagoAnalytics then return end -- Version is already loaded
 
 local SV = {}
+local addons = {}
 
 do
 	local tostring, ipairs, debugstack, debuglocals, date, gsub, format, random, tIndexOf, tinsert, tremove =
@@ -42,19 +43,22 @@ do
 
 	local function handleError(errorMessage, isSimple)
 		errorMessage = tostring(errorMessage)
-		for _, err in ipairs(SV.errors) do
-			if err.message == errorMessage then
+		local wagoID = GetAddOnMetadata(string.match(errorMessage, "AddOns\\([^\\]+)\\") or "Unknown", "X-Wago-ID")
+		if not wagoID or not addons[wagoID] then
+			return
+		end
+		local addon = addons[wagoID]
+		for _, err in ipairs(addon.errors) do
+			if err.mesage and err.message == errorMessage then
 				return
 			end
 		end
 		if isSimple then
-			tinsert(SV.errors, {
-				addon = string.match(errorMessage, "AddOns\\([^\\]+)\\") or "Unknown",
+			addon:Error({
 				message = errorMessage
 			})
 		else
-			tinsert(SV.errors, {
-				addon = string.match(errorMessage, "AddOns\\([^\\]+)\\") or "Unknown",
+			addon:Error({
 				message = errorMessage,
 				stack = debugstack(3),
 				locals = (InCombatLockdown() or UnitAffectingCombat("player")) and "InCombatSkipped" or debuglocals(3)
@@ -180,8 +184,6 @@ function wagoPrototype:Save()
 		errors = self.errors
 	}
 end
-
-local addons = {}
 
 do
 	local mmin, setmetatable = math.min, setmetatable
