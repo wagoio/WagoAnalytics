@@ -174,8 +174,7 @@ do
 				return format("%x", random(0, 0xf))
 			end)
 			WagoAnalyticsSV[uuid] = {
-				addons = {},
-				errors = {},
+				addons = playerAddons,
 				playerData = {
 					locale = playerLocale,
 					class = playerClass,
@@ -189,11 +188,17 @@ do
 			}
 			SV = WagoAnalyticsSV[uuid]
 		end
-		SV[self.addon] = {
-			counters = self.counters,
-			gauges = self.gauges,
-			errors = self.errors
-		}
+		local dat = {}
+		if #self.counters > 0 then
+			dat.counters = self.counters
+		end
+		if #self.gauges > 0 then
+			dat.gauges = self.gauges
+		end
+		if #self.errors > 0 then
+			dat.errors = self.errors
+		end
+		SV[self.addon] = dat
 	end
 end
 
