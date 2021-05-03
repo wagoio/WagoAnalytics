@@ -29,21 +29,21 @@ WagoAnalytics:Error("Variable was expected to be defined, but wasn't")
 local WagoAnalytics = LibStub:NewLibrary("WagoAnalytics", 1)
 if not WagoAnalytics then return end -- Version is already loaded
 
-local SV, addons = {}, {}
+local playerClass, playerRegion, playerSpecs, playerMinLevel, playerMaxLevel, playerRace, playerFaction, playerAddons
 
 do
-	local tostring, ipairs, debugstack, debuglocals, date, gsub, format, random, tIndexOf, tinsert, tremove =
-		tostring, ipairs, debugstack, debuglocals, date, string.gsub, string.format, math.random, tIndexOf, table.insert, table.remove
+	local tostring, ipairs, debugstack, debuglocals, date, tIndexOf, tinsert, tremove =
+		tostring, ipairs, debugstack, debuglocals, date, tIndexOf, table.insert, table.remove
 	local UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, IsLoggedIn, UnitClass, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo =
 		UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, IsLoggedIn, UnitClass, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo
 
 	local function handleError(errorMessage, isSimple)
 		errorMessage = tostring(errorMessage)
 		local wagoID = GetAddOnMetadata(string.match(errorMessage, "AddOns\\([^\\]+)\\") or "Unknown", "X-Wago-ID")
-		if not wagoID or not addons[wagoID] then
+		if not wagoID or not playerAddons[wagoID] then
 			return
 		end
-		local addon = addons[wagoID]
+		local addon = playerAddons[wagoID]
 		for _, err in ipairs(addon.errors) do
 			if err.mesage and err.message == errorMessage then
 				return
@@ -79,47 +79,35 @@ do
 			if not WagoAnalyticsSV then
 				WagoAnalyticsSV = {}
 			end
-			local uuid = gsub("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "x", function()
-				return format("%x", random(0, 0xf))
-			end)
-			local _, playerClass = UnitClass("player")
-			local currentSpecName, currentSpec = "Unknown", GetSpecialization()
+			_, playerClass = UnitClass("player")
+			local currentSpec = GetSpecialization()
 			if currentSpec then
-				_, currentSpecName = GetSpecializationInfo(currentSpec)
+				local _, playerSpec = GetSpecializationInfo(currentSpec)
+				playerSpecs = {}
+				tinsert(playerSpecs, playerSpec)
 			end
-			local _, playerRace = UnitRace("player")
-			local addons = {}
+			_, playerRace = UnitRace("player")
+			playerMinLevel = UnitLevel("player")
+			playerMaxLevel = playerMinLevel
+			playerAddons = {}
 			for i = 1, GetNumAddOns() do
 				local name, _, _, enabled = GetAddOnInfo(i)
 				if enabled then
-					addons[name] = GetAddOnMetadata(i, "Version")
+					playerAddons[name] = GetAddOnMetadata(i, "Version")
 				end
 			end
-			WagoAnalyticsSV[uuid] = {
-				addons = {},
-				errors = {},
-				playerData = {
-					class = playerClass,
-					region = GetCurrentRegionName(),
-					specs = {currentSpecName},
-					levelMin = UnitLevel("player"),
-					race = playerRace,
-					faction = GetPlayerFactionGroup("player")
-				}
-			}
-			SV = WagoAnalyticsSV[uuid]
 		elseif event == "PLAYER_SPECIALIZATION_CHANGED" then
-			local currentSpecName, currentSpec = "Unknown", GetSpecialization()
+			local currentSpec = GetSpecialization()
 			if currentSpec then
-				_, currentSpecName = GetSpecializationInfo(currentSpec)
-			end
-			if not tIndexOf(SV.playerData.specs, currentSpecName) then
-				tinsert(SV.playerData.specs, currentSpecName)
+				local _, playerSpec = GetSpecializationInfo(currentSpec)
+				if not tIndexOf(playerSpecs, playerSpec) then
+					tinsert(playerSpecs, playerSpec)
+				end
 			end
 		elseif event == "PLAYER_LEVEL_UP" then
-			SV.playerData.levelMax = arg1
+			playerMaxLevel = arg1
 		elseif event == "ADDON_LOADED" then
-			SV.addons[arg1] = GetAddOnMetadata(arg1, "Version")
+			playerAddons[arg1] = GetAddOnMetadata(arg1, "Version")
 		elseif event == "ADDON_ACTION_BLOCKED" or event == "ADDON_ACTION_FORBIDDEN" then
 			handleError(("[%s] AddOn '%s' tried to call the protected function '%s'."):format(event, arg1 or "<name>", arg2 or "<func>"))
 		elseif event == "LUA_WARNING" then
@@ -166,19 +154,39 @@ do
 			data = data:sub(0, 252) .. "..."
 		end
 		tinsert(self.breadcrumbs, data)
-		self:Save()
 	end
 end
 
-function wagoPrototype:Save()
-	if not SV[self.addon] then
-		SV[self.addon] = {}
+do
+	local gsub, format, random = string.sub, string.format, math.random
+	local SV
+
+	function wagoPrototype:Save()
+		if not SV then
+			local uuid = gsub("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "x", function()
+				return format("%x", random(0, 0xf))
+			end)
+			WagoAnalyticsSV[uuid] = {
+				addons = {},
+				errors = {},
+				playerData = {
+					class = playerClass,
+					region = playerRegion,
+					specs = playerSpecs,
+					levelMin = playerMinLevel,
+					levelMax = playerMaxLevel,
+					race = playerRace,
+					faction = playerFaction
+				}
+			}
+			SV = WagoAnalyticsSV[uuid]
+		end
+		SV[self.addon] = {
+			counters = self.counters,
+			gauges = self.gauges,
+			errors = self.errors
+		}
 	end
-	SV[self.addon] = {
-		counters = self.counters,
-		gauges = self.gauges,
-		errors = self.errors
-	}
 end
 
 do
