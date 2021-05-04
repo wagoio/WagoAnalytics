@@ -30,20 +30,21 @@ local WagoAnalytics = LibStub:NewLibrary("WagoAnalytics", 1)
 if not WagoAnalytics then return end -- Version is already loaded
 
 local playerClass, playerRegion, playerSpecs, playerMinLevel, playerMaxLevel, playerRace, playerFaction, playerAddons, playerLocale
+local registeredAddons = {}
 
 do
-	local tostring, ipairs, debugstack, debuglocals, date, tIndexOf, tinsert, tremove =
-		tostring, ipairs, debugstack, debuglocals, date, tIndexOf, table.insert, table.remove
+	local tostring, ipairs, debugstack, debuglocals, date, tIndexOf, tinsert, tremove, match =
+		tostring, ipairs, debugstack, debuglocals, date, tIndexOf, table.insert, table.remove, string.match
 	local GetLocale, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, IsLoggedIn, UnitClass, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo =
 		GetLocale, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, IsLoggedIn, UnitClass, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo
 
 	local function handleError(errorMessage, isSimple)
 		errorMessage = tostring(errorMessage)
-		local wagoID = GetAddOnMetadata(string.match(errorMessage, "AddOns\\([^\\]+)\\") or "Unknown", "X-Wago-ID")
-		if not wagoID or not playerAddons[wagoID] then
+		local wagoID = GetAddOnMetadata(match(errorMessage, "AddOns\\([^\\]+)\\") or "Unknown", "X-Wago-ID")
+		if not wagoID or not registeredAddons[wagoID] then
 			return
 		end
-		local addon = playerAddons[wagoID]
+		local addon = registeredAddons[wagoID]
 		for _, err in ipairs(addon.errors) do
 			if err.mesage and err.message == errorMessage then
 				return
@@ -117,10 +118,26 @@ do
 	end)
 end
 
+local TableHas
+do
+	local pairs = pairs
+
+	function TableHas(table, number)
+		local count = 0
+		for _, _ in pairs(table) do
+			count = count + 1
+			if count >= number then
+				return true
+			end
+		end
+		return count >= number
+	end
+end
+
 local wagoPrototype = {}
 
 function wagoPrototype:Counter(name, increment)
-	if #self.counters > 512 then
+	if TableHas(self.counters, 512) then
 		return false
 	end
 	self.counters[name] = (self.counters[name] or 0) + (increment or 1)
@@ -128,7 +145,7 @@ function wagoPrototype:Counter(name, increment)
 end
 
 function wagoPrototype:Gauge(name)
-	if #self.gauges > 512 then
+	if TableHas(self.gauges, 512) then
 		return false
 	end
 	self.gauges[name] = true
@@ -189,10 +206,10 @@ do
 			SV = WagoAnalyticsSV[uuid]
 		end
 		local dat = {}
-		if #self.counters > 0 then
+		if TableHas(self.counters, 1) then
 			dat.counters = self.counters
 		end
-		if #self.gauges > 0 then
+		if TableHas(self.gauges, 1) then
 			dat.gauges = self.gauges
 		end
 		if #self.errors > 0 then
@@ -223,7 +240,7 @@ do
 		}, {
 			__index = wagoPrototype
 		})
-		playerAddons[addon] = obj
+		registeredAddons[addon] = obj
 		return obj
 	end
 end
