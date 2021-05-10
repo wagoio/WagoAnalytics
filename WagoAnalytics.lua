@@ -34,8 +34,8 @@ local SV, playerClass, playerRegion, playerMinLevel, playerMaxLevel, playerRace,
 local SVdeferred, registeredAddons, playerSpecs = {}, {}, {}
 
 do
-	local tostring, ipairs, debugstack, debuglocals, date, tIndexOf, tinsert, tremove, match =
-		tostring, ipairs, debugstack, debuglocals, date, tIndexOf, table.insert, table.remove, string.match
+	local tostring, pairs, ipairs, debugstack, debuglocals, date, tIndexOf, tinsert, tremove, match =
+		tostring, pairs, ipairs, debugstack, debuglocals, date, tIndexOf, table.insert, table.remove, string.match
 	local GetLocale, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, UnitClassBase, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo =
 		GetLocale, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, UnitClassBase, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo
 
@@ -97,7 +97,7 @@ do
 				end
 			end
 			if #SVdeferred > 0 then
-				for _, addon in ipairs(registeredAddons) do
+				for _, addon in pairs(registeredAddons) do
 					addon:Save()
 				end
 				SVdeferred = {}
