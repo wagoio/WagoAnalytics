@@ -36,8 +36,8 @@ local registeredAddons = {}
 do
 	local tostring, ipairs, debugstack, debuglocals, date, tIndexOf, tinsert, tremove, match =
 		tostring, ipairs, debugstack, debuglocals, date, tIndexOf, table.insert, table.remove, string.match
-	local GetLocale, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, IsLoggedIn, UnitClass, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo =
-		GetLocale, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, IsLoggedIn, UnitClass, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo
+	local GetLocale, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, IsLoggedIn, UnitClassBase, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo =
+		GetLocale, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, IsLoggedIn, UnitClassBase, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo
 
 	local function handleError(errorMessage, isSimple)
 		errorMessage = tostring(errorMessage)
@@ -81,14 +81,15 @@ do
 			if not WagoAnalyticsSV then
 				WagoAnalyticsSV = {}
 			end
-			_, playerClass = UnitClass("player")
+			playerClass = UnitClassBase("player")
 			local currentSpec = GetSpecialization()
 			if currentSpec then
 				local _, playerSpec = GetSpecializationInfo(currentSpec)
 				playerSpecs = {}
 				tinsert(playerSpecs, playerSpec)
 			end
-			_, playerRace = UnitRace("player")
+			local _, _playerRace = UnitRace("player")
+			playerRace = _playerRace
 			playerMinLevel = UnitLevel("player")
 			playerMaxLevel = playerMinLevel
 			playerLocale = GetLocale()
