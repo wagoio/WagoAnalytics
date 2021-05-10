@@ -36,8 +36,8 @@ local SVdeferred, registeredAddons = {}, {}
 do
 	local tostring, ipairs, debugstack, debuglocals, date, tIndexOf, tinsert, tremove, match =
 		tostring, ipairs, debugstack, debuglocals, date, tIndexOf, table.insert, table.remove, string.match
-	local GetLocale, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, IsLoggedIn, UnitClassBase, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo =
-		GetLocale, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, IsLoggedIn, UnitClassBase, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo
+	local GetLocale, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, UnitClassBase, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo =
+		GetLocale, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, UnitClassBase, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo
 
 	local function handleError(errorMessage, isSimple)
 		errorMessage = tostring(errorMessage)
@@ -75,9 +75,6 @@ do
 	frame:RegisterEvent("LUA_WARNING")
 	frame:SetScript("OnEvent", function(self, event, arg1, arg2)
 		if event == "PLAYER_LOGIN" then
-			if not IsLoggedIn() then
-				return
-			end
 			if not WagoAnalyticsSV then
 				WagoAnalyticsSV = {}
 			end
