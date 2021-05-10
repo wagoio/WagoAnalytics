@@ -5,6 +5,4 @@
 ## LoadOnDemand: 0
 ## Author: Wago Addons Team
 
-Libs\LibStub\LibStub.lua
-
 WagoAnalytics.lua

@@ -1,6 +1,5 @@
 --[[
-Include the Shim.lua inside of your AddOn for when users decide to opt-out of contributing analytics data.
-Simply drop the file inside of your AddOn, and include it in your TOC file
+Follow the instructions located at https://github.com/methodgg/WagoAnalytics/tree/shim to use this.
 
 Example Usage:
 
@@ -26,8 +25,9 @@ WagoAnalytics:Gauge("SomeGauge")
 -- Throw a custom error message arg1. This includes the previous breadcrumbs automatically.
 WagoAnalytics:Error("Variable was expected to be defined, but wasn't")
 --]]
-local WagoAnalytics = LibStub:NewLibrary("WagoAnalytics", 1000)
-if not WagoAnalytics then return end -- Version is already loaded
+
+WagoAnalytics = {}
+local WagoAnalytics = WagoAnalytics
 
 local type = type
 local playerClass, playerRegion, playerSpecs, playerMinLevel, playerMaxLevel, playerRace, playerFaction, playerAddons, playerLocale
@@ -141,11 +141,11 @@ function wagoPrototype:Counter(name, increment)
 	if type(name) ~= "string" then
 		return false
 	end
-	if TableHas(self.counters, 512) then
-		return false
-	end
 	if #name > 128 then
 		name = name:sub(0, 128)
+	end
+	if not self.counters[name] and TableHas(self.counters, 512) then
+		return false
 	end
 	self.counters[name] = (self.counters[name] or 0) + (increment or 1)
 	self:Save()
@@ -155,11 +155,11 @@ function wagoPrototype:Gauge(name)
 	if type(name) ~= "string" then
 		return false
 	end
-	if TableHas(self.gauges, 512) then
-		return false
-	end
 	if #name > 128 then
 		name = name:sub(0, 128)
+	end
+	if self.gauges[name] or TableHas(self.gauges, 512) then
+		return false
 	end
 	self.gauges[name] = true
 	self:Save()
@@ -170,6 +170,9 @@ do
 
 	function wagoPrototype:Error(error)
 		if type(error) ~= "string" then
+			return false
+		end
+		if #self.errors > 512 then
 			return false
 		end
 		if #error > 1024 then
