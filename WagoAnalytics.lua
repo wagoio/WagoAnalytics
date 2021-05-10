@@ -47,7 +47,7 @@ do
 		end
 		local addon = registeredAddons[wagoID]
 		for _, err in ipairs(addon.errors) do
-			if err.mesage and err.message == errorMessage then
+			if err.message and err.message == errorMessage then
 				return
 			end
 		end
