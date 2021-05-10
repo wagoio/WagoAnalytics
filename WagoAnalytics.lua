@@ -244,13 +244,13 @@ do
 			local count, lastK, lastTime = 0, nil, math.huge
 			for k, v in pairs(WagoAnalyticsSV) do
 				count = count + 1
-				if count > 256 then
-					WagoAnalyticsSV[lastK] = nil
-					break
-				end
 				if v.time < lastTime then
 					lastK = k
 					lastTime = v.time
+				end
+				if count > 256 then
+					WagoAnalyticsSV[lastK] = nil
+					break
 				end
 			end
 			SV = WagoAnalyticsSV[uuid]
@@ -273,6 +273,9 @@ do
 	local mmin, setmetatable = math.min, setmetatable
 
 	function WagoAnalytics:Register(addon, options)
+		if registeredAddons[addon] then
+			return registeredAddons[addon]
+		end
 		if not options then
 			options = {}
 		end
