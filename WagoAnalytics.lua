@@ -29,6 +29,7 @@ WagoAnalytics:Error("Variable was expected to be defined, but wasn't")
 local WagoAnalytics = LibStub:NewLibrary("WagoAnalytics", 1)
 if not WagoAnalytics then return end -- Version is already loaded
 
+local type = type
 local playerClass, playerRegion, playerSpecs, playerMinLevel, playerMaxLevel, playerRace, playerFaction, playerAddons, playerLocale
 local registeredAddons = {}
 
@@ -46,7 +47,7 @@ do
 		end
 		local addon = registeredAddons[wagoID]
 		for _, err in ipairs(addon.errors) do
-			if err.mesage and err.message == errorMessage then
+			if err.message and err.message == errorMessage then
 				return
 			end
 		end
@@ -137,26 +138,41 @@ end
 local wagoPrototype = {}
 
 function wagoPrototype:Counter(name, increment)
+	if type(name) ~= "string" then
+		return false
+	end
 	if TableHas(self.counters, 512) then
 		return false
+	end
+	if #name > 128 then
+		name = name:sub(0, 128)
 	end
 	self.counters[name] = (self.counters[name] or 0) + (increment or 1)
 	self:Save()
 end
 
 function wagoPrototype:Gauge(name)
+	if type(name) ~= "string" then
+		return false
+	end
 	if TableHas(self.gauges, 512) then
 		return false
+	end
+	if #name > 128 then
+		name = name:sub(0, 128)
 	end
 	self.gauges[name] = true
 	self:Save()
 end
 
 do
-	local tinsert, type = table.insert, type
+	local tinsert = table.insert
 
 	function wagoPrototype:Error(error)
-		if type(error) == "string" and #error > 1024 then
+		if type(error) ~= "string" then
+			return false
+		end
+		if #error > 1024 then
 			error = error:sub(0, 1021) .. "..."
 		end
 		tinsert(self.errors, {
@@ -174,7 +190,10 @@ do
 		if #self.breadcrumbs > self.options.breadcrumbCount then
 			tremove(self.breadcrumbs, 1)
 		end
-		if type(data) == "string" and #data > 255 then
+		if type(data) ~= "string" then
+			return false
+		end
+		if #data > 255 then
 			data = data:sub(0, 252) .. "..."
 		end
 		tinsert(self.breadcrumbs, data)
@@ -182,7 +201,7 @@ do
 end
 
 do
-	local gsub, format, random = string.gsub, string.format, math.random
+	local gsub, format, random, time, pairs = string.gsub, string.format, math.random, time, pairs
 	local SV
 
 	function wagoPrototype:Save()
@@ -191,6 +210,7 @@ do
 				return format("%x", random(0, 0xf))
 			end)
 			WagoAnalyticsSV[uuid] = {
+				time = time(),
 				addons = playerAddons,
 				playerData = {
 					locale = playerLocale,
@@ -203,6 +223,18 @@ do
 					faction = playerFaction
 				}
 			}
+			local count, lastK, lastTime = 0, nil, math.maxinteger
+			for k, v in pairs(WagoAnalyticsSV) do
+				count = count + 1
+				if count > 256 then
+					WagoAnalyticsSV[lastK] = nil
+					break
+				end
+				if v.time < lastTime then
+					lastK = k
+					lastTime = v.time
+				end
+			end
 			SV = WagoAnalyticsSV[uuid]
 		end
 		local dat = {}
