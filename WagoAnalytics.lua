@@ -30,9 +30,8 @@ WagoAnalytics = {}
 local WagoAnalytics = WagoAnalytics
 
 local type = type
-local SVdeferred = {}
 local SV, playerClass, playerRegion, playerSpecs, playerMinLevel, playerMaxLevel, playerRace, playerFaction, playerAddons, playerLocale
-local registeredAddons = {}
+local SVdeferred, registeredAddons = {}, {}
 
 do
 	local tostring, ipairs, debugstack, debuglocals, date, tIndexOf, tinsert, tremove, match =
