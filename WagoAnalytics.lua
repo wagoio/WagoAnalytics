@@ -26,7 +26,7 @@ WagoAnalytics:Gauge("SomeGauge")
 -- Throw a custom error message arg1. This includes the previous breadcrumbs automatically.
 WagoAnalytics:Error("Variable was expected to be defined, but wasn't")
 --]]
-local WagoAnalytics = LibStub:NewLibrary("WagoAnalytics", 1)
+local WagoAnalytics = LibStub:NewLibrary("WagoAnalytics", 1000)
 if not WagoAnalytics then return end -- Version is already loaded
 
 local type = type
