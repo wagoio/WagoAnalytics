@@ -30,7 +30,7 @@ WagoAnalytics = {}
 local WagoAnalytics = WagoAnalytics
 
 local type = type
-local playerClass, playerRegion, playerSpecs, playerMinLevel, playerMaxLevel, playerRace, playerFaction, playerAddons, playerLocale
+local SV, playerClass, playerRegion, playerSpecs, playerMinLevel, playerMaxLevel, playerRace, playerFaction, playerAddons, playerLocale
 local registeredAddons = {}
 
 do
@@ -106,12 +106,21 @@ do
 				local _, playerSpec = GetSpecializationInfo(currentSpec)
 				if not tIndexOf(playerSpecs, playerSpec) then
 					tinsert(playerSpecs, playerSpec)
+					if SV then
+						SV.playerData.specs = playerSpecs
+					end
 				end
 			end
 		elseif event == "PLAYER_LEVEL_UP" then
 			playerMaxLevel = arg1
+			if SV then
+				SV.playerData.levelMax = playerMaxLevel
+			end
 		elseif event == "ADDON_LOADED" then
 			playerAddons[arg1] = GetAddOnMetadata(arg1, "Version")
+			if SV then
+				SV.addons = playerAddons
+			end
 		elseif event == "ADDON_ACTION_BLOCKED" or event == "ADDON_ACTION_FORBIDDEN" then
 			handleError(("[%s] AddOn '%s' tried to call the protected function '%s'."):format(event, arg1 or "<name>", arg2 or "<func>"))
 		elseif event == "LUA_WARNING" then
@@ -206,7 +215,6 @@ end
 
 do
 	local gsub, format, random, time, pairs = string.gsub, string.format, math.random, time, pairs
-	local SV
 
 	function wagoPrototype:Save()
 		if not SV then
