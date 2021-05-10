@@ -202,11 +202,11 @@ do
 	local tremove, tinsert, type = table.remove, table.insert, type
 
 	function wagoPrototype:Breadcrumb(data)
-		if #self.breadcrumbs > self.options.breadcrumbCount then
-			tremove(self.breadcrumbs, 1)
-		end
 		if type(data) ~= "string" then
 			return false
+		end
+		if #self.breadcrumbs >= self.options.breadcrumbCount then
+			tremove(self.breadcrumbs, 1)
 		end
 		if #data > 255 then
 			data = data:sub(0, 252) .. "..."
