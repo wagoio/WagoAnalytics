@@ -166,7 +166,7 @@ function wagoPrototype:Gauge(name)
 end
 
 do
-	local tinsert = table.insert
+	local tinsert, tunpack = table.insert, table.unpack
 
 	function wagoPrototype:Error(error)
 		if type(error) ~= "string" then
@@ -180,7 +180,7 @@ do
 		end
 		tinsert(self.errors, {
 			error = error,
-			breadcrumb = self.breadcrumbs
+			breadcrumb = {tunpack(self.breadcrumbs)}
 		})
 		self:Save()
 	end
