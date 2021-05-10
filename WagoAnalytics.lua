@@ -94,7 +94,7 @@ do
 			for i = 1, GetNumAddOns() do
 				local name, _, _, enabled = GetAddOnInfo(i)
 				if enabled then
-					playerAddons[name] = GetAddOnMetadata(i, "Version")
+					playerAddons[name] = GetAddOnMetadata(i, "Version") or "Unknown"
 				end
 			end
 			if #SVdeferred > 0 then
