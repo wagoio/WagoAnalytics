@@ -30,6 +30,7 @@ WagoAnalytics = {}
 local WagoAnalytics = WagoAnalytics
 
 local type = type
+local SVdeferred = {}
 local SV, playerClass, playerRegion, playerSpecs, playerMinLevel, playerMaxLevel, playerRace, playerFaction, playerAddons, playerLocale
 local registeredAddons = {}
 
@@ -99,6 +100,12 @@ do
 				if enabled then
 					playerAddons[name] = GetAddOnMetadata(i, "Version")
 				end
+			end
+			if #SVdeferred > 0 then
+				for _, addon in ipairs(registeredAddons) do
+					addon:Save()
+				end
+				SVdeferred = {}
 			end
 		elseif event == "PLAYER_SPECIALIZATION_CHANGED" then
 			local currentSpec = GetSpecialization()
@@ -214,9 +221,13 @@ do
 end
 
 do
-	local gsub, format, random, time, pairs = string.gsub, string.format, math.random, time, pairs
+	local gsub, format, random, time, pairs, tinsert = string.gsub, string.format, math.random, time, pairs, table.insert
 
 	function wagoPrototype:Save()
+		if not WagoAnalyticsSV then
+			tinsert(SVdeferred, self.addon)
+			return
+		end
 		if not SV then
 			local uuid = gsub("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "x", function()
 				return format("%x", random(0, 0xf))
