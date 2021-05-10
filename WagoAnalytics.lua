@@ -245,7 +245,7 @@ do
 					faction = playerFaction
 				}
 			}
-			local count, lastK, lastTime = 0, nil, math.maxinteger
+			local count, lastK, lastTime = 0, nil, math.huge
 			for k, v in pairs(WagoAnalyticsSV) do
 				count = count + 1
 				if count > 256 then
