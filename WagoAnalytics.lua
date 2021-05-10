@@ -30,8 +30,8 @@ WagoAnalytics = {}
 local WagoAnalytics = WagoAnalytics
 
 local type = type
-local SV, playerClass, playerRegion, playerSpecs, playerMinLevel, playerMaxLevel, playerRace, playerFaction, playerAddons, playerLocale
-local SVdeferred, registeredAddons = {}, {}
+local SV, playerClass, playerRegion, playerMinLevel, playerMaxLevel, playerRace, playerFaction, playerAddons, playerLocale
+local SVdeferred, registeredAddons, playerSpecs = {}, {}, {}
 
 do
 	local tostring, ipairs, debugstack, debuglocals, date, tIndexOf, tinsert, tremove, match =
@@ -82,7 +82,6 @@ do
 			local currentSpec = GetSpecialization()
 			if currentSpec then
 				local _, playerSpec = GetSpecializationInfo(currentSpec)
-				playerSpecs = {}
 				tinsert(playerSpecs, playerSpec)
 			end
 			local _, _playerRace = UnitRace("player")
@@ -120,7 +119,7 @@ do
 				SV.playerData.levelMax = playerMaxLevel
 			end
 		elseif event == "ADDON_LOADED" then
-			playerAddons[arg1] = GetAddOnMetadata(arg1, "Version")
+			playerAddons[arg1] = GetAddOnMetadata(arg1, "Version") or "Unknown"
 			if SV then
 				SV.addons = playerAddons
 			end
