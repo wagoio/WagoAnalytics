@@ -10,11 +10,8 @@ Options = {
 
 local WagoAnalytics = LibStub("WagoAnalytics"):Register("<Your Wago addon ID>") -- 2nd argument is an optional list of options
 
--- Add breadcrumb data with arg1 table of information
-WagoAnalytics:Breadcrumb({
-	someData = "Hello",
-	otherData = "World"
-})
+-- Add breadcrumb data with arg1 message
+WagoAnalytics:Breadcrumb("Some useful debug information here.")
 
 -- Increments the counter arg1 by arg2 amount
 WagoAnalytics:Counter("SomeCounter", 50)
@@ -30,14 +27,14 @@ WagoAnalytics = {}
 local WagoAnalytics = WagoAnalytics
 
 local type = type
-local SV, playerClass, playerRegion, playerMinLevel, playerMaxLevel, playerRace, playerFaction, playerAddons, playerLocale
-local SVdeferred, registeredAddons, playerSpecs = {}, {}, {}
+local SV, playerClass, playerRegion, playerMinLevel, playerMaxLevel, playerRace, playerFaction, playerLocale
+local SVdeferred, registeredAddons, playerSpecs, playerAddons = {}, {}, {}, {}
 
 do
 	local tostring, pairs, ipairs, debugstack, debuglocals, date, tIndexOf, tinsert, tremove, match =
 		tostring, pairs, ipairs, debugstack, debuglocals, date, tIndexOf, table.insert, table.remove, string.match
-	local GetLocale, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, UnitClassBase, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo =
-		GetLocale, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, UnitClassBase, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo
+	local GetLocale, UnitFactionGroup, GetCurrentRegion, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, UnitClassBase, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo =
+		GetLocale, UnitFactionGroup, GetCurrentRegion, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, UnitClassBase, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo
 
 	local function handleError(errorMessage, isSimple)
 		errorMessage = tostring(errorMessage)
@@ -86,10 +83,11 @@ do
 			end
 			local _, _playerRace = UnitRace("player")
 			playerRace = _playerRace
+			playerFaction = UnitFactionGroup("player") or "Neutral"
 			playerMinLevel = UnitLevel("player")
 			playerMaxLevel = playerMinLevel
 			playerLocale = GetLocale()
-			playerAddons = {}
+			playerRegion = GetCurrentRegion()
 			for i = 1, GetNumAddOns() do
 				local name, _, _, enabled = GetAddOnInfo(i)
 				if enabled then
