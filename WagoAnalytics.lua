@@ -28,7 +28,7 @@ local WagoAnalytics = WagoAnalytics
 
 local type = type
 local SV, playerClass, playerRegion, playerMinLevel, playerMaxLevel, playerRace, playerFaction, playerLocale
-local SVdeferred, registeredAddons, playerSpecs, playerAddons = {}, {}, {}, {}
+local registeredAddons, playerSpecs, playerAddons, count = {}, {}, {}, {}
 
 do
 	local tostring, pairs, ipairs, debugstack, debuglocals, date, tIndexOf, tinsert, tremove, match =
@@ -70,7 +70,10 @@ do
 	frame:RegisterEvent("ADDON_ACTION_BLOCKED")
 	frame:RegisterEvent("ADDON_ACTION_FORBIDDEN")
 	frame:RegisterEvent("LUA_WARNING")
+	frame:RegisterEvent("ADDONS_UNLOADING")
+
 	frame:SetScript("OnEvent", function(self, event, arg1, arg2)
+		-- Handles when the addon loads
 		if event == "PLAYER_LOGIN" then
 			if not WagoAnalyticsSV then
 				WagoAnalyticsSV = {}
@@ -94,55 +97,34 @@ do
 					playerAddons[name] = GetAddOnMetadata(i, "Version") or "Unknown"
 				end
 			end
-			if #SVdeferred > 0 then
-				for _, addon in pairs(registeredAddons) do
-					addon:Save()
-				end
-				SVdeferred = {}
-			end
+		-- Handles when the player changes their specialization
 		elseif event == "PLAYER_SPECIALIZATION_CHANGED" then
 			local currentSpec = GetSpecialization()
 			if currentSpec then
 				local _, playerSpec = GetSpecializationInfo(currentSpec)
 				if not tIndexOf(playerSpecs, playerSpec) then
 					tinsert(playerSpecs, playerSpec)
-					if SV then
-						SV.playerData.specs = playerSpecs
-					end
 				end
 			end
+		-- Handles when the player levels up
 		elseif event == "PLAYER_LEVEL_UP" then
 			playerMaxLevel = arg1
-			if SV then
-				SV.playerData.levelMax = playerMaxLevel
-			end
+		-- Handles when an addon is loaded
 		elseif event == "ADDON_LOADED" then
 			playerAddons[arg1] = GetAddOnMetadata(arg1, "Version") or "Unknown"
-			if SV then
-				SV.addons = playerAddons
-			end
+		-- Handles when an addon fires a bad action (protected or forbidden)
 		elseif event == "ADDON_ACTION_BLOCKED" or event == "ADDON_ACTION_FORBIDDEN" then
 			handleError(("[%s] AddOn '%s' tried to call the protected function '%s'."):format(event, arg1 or "<name>", arg2 or "<func>"))
+		-- Handles when an addon fires bad Lua code
 		elseif event == "LUA_WARNING" then
 			handleError(arg2, true)
-		end
-	end)
-end
-
-local TableHas
-do
-	local pairs = pairs
-
-	function TableHas(table, number)
-		local count = 0
-		for _, _ in pairs(table) do
-			count = count + 1
-			if count >= number then
-				return true
+		-- Handles when the player closes the game or logs out
+		elseif event == "ADDONS_UNLOADING" then
+			for _, addon in pairs(registeredAddons) do
+				addon:Save()
 			end
 		end
-		return count >= number
-	end
+	end)
 end
 
 local wagoPrototype = {}
@@ -154,11 +136,14 @@ function wagoPrototype:Counter(name, increment)
 	if #name > 128 then
 		name = name:sub(0, 128)
 	end
-	if not self.counters[name] and TableHas(self.counters, 512) then
-		return false
+	if not self.counters[name] then
+		local elemLen = count[self.addon].counters
+		if elemLen > 512 then
+			return false
+		end
+		count[self.addon].counters = elemLen + 1
 	end
 	self.counters[name] = (self.counters[name] or 0) + (increment or 1)
-	self:Save()
 end
 
 function wagoPrototype:Gauge(name)
@@ -168,11 +153,12 @@ function wagoPrototype:Gauge(name)
 	if #name > 128 then
 		name = name:sub(0, 128)
 	end
-	if self.gauges[name] or TableHas(self.gauges, 512) then
+	local elemLen = count[self.addon].gauges
+	if self.gauges[name] or elemLen > 512 then
 		return false
 	end
+	count[self.addon].gauges = elemLen + 1
 	self.gauges[name] = true
-	self:Save()
 end
 
 do
@@ -190,9 +176,8 @@ do
 		end
 		tinsert(self.errors, {
 			error = error,
-			breadcrumb = {unpack(self.breadcrumbs)}
+			breadcrumb = {unpack(self.breadcrumbs.elements)}
 		})
-		self:Save()
 	end
 end
 
@@ -203,13 +188,10 @@ do
 		if type(data) ~= "string" then
 			return false
 		end
-		if #self.breadcrumbs >= self.options.breadcrumbCount then
-			tremove(self.breadcrumbs, 1)
-		end
 		if #data > 255 then
 			data = data:sub(0, 252) .. "..."
 		end
-		tinsert(self.breadcrumbs, data)
+		self.breadcrumbs:PushFront(data)
 	end
 end
 
@@ -217,10 +199,6 @@ do
 	local gsub, format, random, time, pairs, tinsert = string.gsub, string.format, math.random, time, pairs, table.insert
 
 	function wagoPrototype:Save()
-		if not WagoAnalyticsSV then
-			tinsert(SVdeferred, self.addon)
-			return
-		end
 		if not SV then
 			local uuid = gsub("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "x", function()
 				return format("%x", random(0, 0xf))
@@ -253,22 +231,16 @@ do
 			end
 			SV = WagoAnalyticsSV[uuid]
 		end
-		local dat = {}
-		if TableHas(self.counters, 1) then
-			dat.counters = self.counters
-		end
-		if TableHas(self.gauges, 1) then
-			dat.gauges = self.gauges
-		end
-		if #self.errors > 0 then
-			dat.errors = self.errors
-		end
-		SV[self.addon] = dat
+		SV[self.addon] = {
+			counters = self.counters,
+			gauges = self.gauges,
+			errors = self.errors
+		}
 	end
 end
 
 do
-	local mmin, setmetatable = math.min, setmetatable
+	local CreateCircularBuffer, mmin, setmetatable = CreateCircularBuffer, math.min, setmetatable
 
 	function WagoAnalytics:Register(addon, options)
 		if registeredAddons[addon] then
@@ -277,7 +249,6 @@ do
 		if not options then
 			options = {}
 		end
-		options.breadcrumbCount = mmin(options.breadcrumbCount or 20, 50)
 		if options.reportErrors == nil then
 			options.reportErrors = true
 		end
@@ -287,11 +258,15 @@ do
 			counters = {},
 			gauges = {},
 			errors = {},
-			breadcrumbs = {}
+			breadcrumbs = CreateCircularBuffer(mmin(options.breadcrumbCount or 20, 50))
 		}, {
 			__index = wagoPrototype
 		})
 		registeredAddons[addon] = obj
+		count[addon] = {
+			counters = 0,
+			gauges = 0
+		}
 		return obj
 	end
 end
