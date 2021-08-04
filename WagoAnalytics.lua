@@ -27,7 +27,7 @@ WagoAnalytics = {}
 local WagoAnalytics = WagoAnalytics
 
 local type = type
-local SV, playerClass, playerRegion, playerMinLevel, playerMaxLevel, playerRace, playerFaction, playerLocale
+local SV, playerClass, playerRegion, playerMinLevel, playerMaxLevel, playerRace, playerFaction, playerLocale, playerName, playerRealm
 local registeredAddons, playerSpecs, playerAddons, count = {}, {}, {}, {}
 
 do
@@ -91,6 +91,8 @@ do
 			playerMaxLevel = playerMinLevel
 			playerLocale = GetLocale()
 			playerRegion = GetCurrentRegion()
+			playerName = UnitName("player")
+			playerRealm = GetRealmName()
 			for i = 1, GetNumAddOns() do
 				local name, _, _, enabled = GetAddOnInfo(i)
 				if enabled then
@@ -208,6 +210,8 @@ do
 				time = time(),
 				addons = playerAddons,
 				playerData = {
+					name = playerName,
+					realm = playerRealm,
 					locale = playerLocale,
 					class = playerClass,
 					region = playerRegion,
