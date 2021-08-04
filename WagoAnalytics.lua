@@ -204,6 +204,7 @@ do
 				return format("%x", random(0, 0xf))
 			end)
 			WagoAnalyticsSV[uuid] = {
+				data = {},
 				time = time(),
 				addons = playerAddons,
 				playerData = {
@@ -231,7 +232,7 @@ do
 			end
 			SV = WagoAnalyticsSV[uuid]
 		end
-		SV[self.addon] = {
+		SV['data'][self.addon] = {
 			counters = self.counters,
 			gauges = self.gauges,
 			errors = self.errors
