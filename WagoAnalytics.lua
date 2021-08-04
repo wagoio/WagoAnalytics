@@ -60,7 +60,14 @@ do
 			})
 		end
 	end
-	_G.seterrorhandler(handleError)
+
+	do
+		local oldErrorHandler = _G.geterrorhandler()
+		_G.seterrorhandler(function(...)
+			handleError(...)
+			oldErrorHandler(...)
+		end)
+	end
 
 	local frame = CreateFrame("Frame")
 	frame:RegisterEvent("PLAYER_LOGIN")
@@ -236,11 +243,14 @@ do
 			end
 			SV = WagoAnalyticsSV[uuid]
 		end
-		SV['data'][self.addon] = {
-			counters = self.counters,
-			gauges = self.gauges,
-			errors = self.errors
-		}
+		-- Prevent saving addon data if there's no analytics
+		if count[self.addon].counters > 0 or count[self.addon].gauges > 0 or #errors > 0 then
+			SV['data'][self.addon] = {
+				counters = self.counters,
+				gauges = self.gauges,
+				errors = self.errors
+			}
+		end
 	end
 end
 
