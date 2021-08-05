@@ -16,7 +16,7 @@ WagoAnalytics:Breadcrumb("Some useful debug information here.")
 -- Increments the counter arg1 by arg2 amount
 WagoAnalytics:Counter("SomeCounter", 50)
 
--- Set a boolean arg1 value to true
+-- Set a boolean arg1 value to arg2 or true
 WagoAnalytics:Gauge("SomeGauge")
 
 -- Throw a custom error message arg1. This includes the previous breadcrumbs automatically.
@@ -155,19 +155,19 @@ function wagoPrototype:Counter(name, increment)
 	self.counters[name] = (self.counters[name] or 0) + (increment or 1)
 end
 
-function wagoPrototype:Gauge(name)
-	if type(name) ~= "string" then
+function wagoPrototype:Gauge(name, value)
+	if type(name) ~= "string" or type(value) ~= "boolean" then
 		return false
 	end
 	if #name > 128 then
 		name = name:sub(0, 128)
 	end
 	local elemLen = count[self.addon].gauges
-	if self.gauges[name] or elemLen > 512 then
+	if self.gauges[name] ~= nil or elemLen > 512 then
 		return false
 	end
 	count[self.addon].gauges = elemLen + 1
-	self.gauges[name] = true
+	self.gauges[name] = value or true
 end
 
 do
