@@ -194,7 +194,7 @@ function wagoPrototype:Gauge(name, value)
 		name = name:sub(0, 128)
 	end
 	local elemLen = count[self.addon].gauges
-	if self.gauges[name] ~= nil or elemLen > 512 then
+	if elemLen > 512 then
 		return false
 	end
 	count[self.addon].gauges = elemLen + 1
