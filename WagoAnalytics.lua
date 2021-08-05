@@ -23,6 +23,8 @@ WagoAnalytics:Gauge("SomeGauge")
 WagoAnalytics:Error("Variable was expected to be defined, but wasn't")
 --]]
 
+local _, addon = ...
+
 WagoAnalytics = {}
 local WagoAnalytics = WagoAnalytics
 
@@ -36,7 +38,8 @@ do
 	local GetLocale, UnitFactionGroup, GetCurrentRegion, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, UnitClassBase, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo =
 		GetLocale, UnitFactionGroup, GetCurrentRegion, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, UnitClassBase, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo
 
-	local function handleError(errorMessage, isSimple)
+	-- isSimple 3 state: True is simple, False is pcall, Nil is not simple
+	local function handleError(errorMessage, isSimple, errorObj)
 		errorMessage = tostring(errorMessage)
 		local wagoID = GetAddOnMetadata(match(errorMessage, "AddOns\\([^\\]+)\\") or "Unknown", "X-Wago-ID")
 		if not wagoID or not registeredAddons[wagoID] then
@@ -55,8 +58,8 @@ do
 		else
 			addon:Error({
 				message = errorMessage,
-				stack = debugstack(3),
-				locals = (InCombatLockdown() or UnitAffectingCombat("player")) and "InCombatSkipped" or debuglocals(3)
+				stack = errorObj and errorObj.stack or debugstack(3),
+				locals = errorObj and errorObj.locals or (InCombatLockdown() or UnitAffectingCombat("player")) and "Skipped (In Encounter)" or debuglocals(isSimple == nil and 3 or 5)
 			})
 		end
 	end
@@ -64,8 +67,12 @@ do
 	do
 		local oldErrorHandler = _G.geterrorhandler()
 		_G.seterrorhandler(function(...)
-			handleError(...)
-			oldErrorHandler(...)
+			local ok, innerError = pcall(handleError, err, false)
+			oldErrorHandler(err)
+
+			if not ok then
+				oldErrorHandler(innerError)
+			end
 		end)
 	end
 
@@ -105,6 +112,12 @@ do
 				if enabled then
 					playerAddons[name] = GetAddOnMetadata(i, "Version") or "Unknown"
 				end
+			end
+			-- Hooks into BugSack
+			if BugGrabber and BugGrabber.RegisterCallback then
+				BugGrabber.RegisterCallback(addon, "BugGrabber_BugGrabbed", function(_, error)
+					handleError(error.message, error.stack and true or nil, error)
+				end)
 			end
 		-- Handles when the player changes their specialization
 		elseif event == "PLAYER_SPECIALIZATION_CHANGED" then
