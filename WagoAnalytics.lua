@@ -136,6 +136,18 @@ do
 	end)
 end
 
+-- Start Utility functions
+local function CollectBufferElements(buffer)
+    local elements = {}
+
+    for i = buffer:GetNumElements(), 1, -1 do
+        table.insert(elements, buffer:GetEntryAtIndex(i))
+    end
+
+    return elements
+end
+-- End utility functions
+
 local wagoPrototype = {}
 
 function wagoPrototype:Counter(name, increment)
@@ -185,7 +197,7 @@ do
 		end
 		tinsert(self.errors, {
 			error = error,
-			breadcrumb = {unpack(self.breadcrumbs.elements)}
+			breadcrumb = CollectBufferElements(self.breadcrumbs)
 		})
 	end
 end
