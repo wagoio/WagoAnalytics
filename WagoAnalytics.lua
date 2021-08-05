@@ -187,6 +187,7 @@ function wagoPrototype:Counter(name, increment)
 end
 
 function wagoPrototype:Gauge(name, value)
+	value = value == nil and true or value
 	if type(name) ~= "string" or type(value) ~= "boolean" then
 		return false
 	end
@@ -198,7 +199,7 @@ function wagoPrototype:Gauge(name, value)
 		return false
 	end
 	count[self.addon].gauges = elemLen + 1
-	self.gauges[name] = value or true
+	self.gauges[name] = value
 end
 
 do
