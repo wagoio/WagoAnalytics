@@ -137,14 +137,20 @@ do
 end
 
 -- Start Utility functions
-local function CollectBufferElements(buffer)
-    local elements = {}
+local CollectBufferElements
 
-    for i = buffer:GetNumElements(), 1, -1 do
-        table.insert(elements, buffer:GetEntryAtIndex(i))
-    end
+do
+	local tinsert = table.insert
 
-    return elements
+	local function CollectBufferElements(buffer)
+		local elements = {}
+
+		for i = buffer:GetNumElements(), 1, -1 do
+			tinsert(elements, buffer:GetEntryAtIndex(i))
+		end
+
+		return elements
+	end
 end
 -- End utility functions
 
