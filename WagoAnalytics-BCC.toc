@@ -1,4 +1,4 @@
-## Interface: 90100
+## Interface: 20501
 ## Title: WagoAnalytics
 ## Version: 1.0
 ## SavedVariables: WagoAnalyticsSV
