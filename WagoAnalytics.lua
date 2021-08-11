@@ -28,15 +28,14 @@ local _, addon = ...
 WagoAnalytics = {}
 local WagoAnalytics = WagoAnalytics
 
-local type = type
 local SV, playerClass, playerRegion, playerMinLevel, playerMaxLevel, playerRace, playerFaction, playerLocale, playerName, playerRealm
-local registeredAddons, playerSpecs, playerAddons, count = {}, {}, {}, {}
+local registeredAddons, playerSpecs, playerAddons, variableCount = {}, {}, {}, {}
 
 do
-	local tostring, pairs, ipairs, debugstack, debuglocals, date, tIndexOf, tinsert, tremove, match =
-		tostring, pairs, ipairs, debugstack, debuglocals, date, tIndexOf, table.insert, table.remove, string.match
-	local GetLocale, UnitFactionGroup, GetCurrentRegion, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, UnitClassBase, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo =
-		GetLocale, UnitFactionGroup, GetCurrentRegion, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, UnitClassBase, UnitLevel, UnitRace, GetPlayerFactionGroup, GetCurrentRegionName, GetSpecialization, GetSpecializationInfo
+	local tostring, pairs, ipairs, debugstack, debuglocals, tIndexOf, tinsert, match =
+		tostring, pairs, ipairs, debugstack, debuglocals, tIndexOf, table.insert, string.match
+	local GetLocale, UnitFactionGroup, GetCurrentRegion, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, UnitClassBase, UnitLevel, UnitRace, GetSpecialization, GetSpecializationInfo =
+		GetLocale, UnitFactionGroup, GetCurrentRegion, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, UnitClassBase, UnitLevel, UnitRace, GetSpecialization, GetSpecializationInfo
 
 	-- isSimple 3 state: True is simple, False is pcall, Nil is not simple
 	local function handleError(errorMessage, isSimple, errorObj)
@@ -45,18 +44,18 @@ do
 		if not wagoID or not registeredAddons[wagoID] then
 			return
 		end
-		local addon = registeredAddons[wagoID]
-		for _, err in ipairs(addon.errors) do
+		local addonObj = registeredAddons[wagoID]
+		for _, err in ipairs(addonObj.errors) do
 			if err.message and err.message == errorMessage then
 				return
 			end
 		end
 		if isSimple then
-			addon:Error({
+			addonObj:Error({
 				message = errorMessage
 			})
 		else
-			addon:Error({
+			addonObj:Error({
 				message = errorMessage,
 				stack = errorObj and errorObj.stack or debugstack(3),
 				locals = errorObj and errorObj.locals or (InCombatLockdown() or UnitAffectingCombat("player")) and "Skipped (In Encounter)" or debuglocals(isSimple == nil and 3 or 5)
@@ -66,7 +65,7 @@ do
 
 	do
 		local oldErrorHandler = _G.geterrorhandler()
-		_G.seterrorhandler(function(...)
+		_G.seterrorhandler(function(err)
 			local ok, innerError = pcall(handleError, err, false)
 			oldErrorHandler(err)
 
@@ -86,7 +85,7 @@ do
 	frame:RegisterEvent("LUA_WARNING")
 	frame:RegisterEvent("ADDONS_UNLOADING")
 
-	frame:SetScript("OnEvent", function(self, event, arg1, arg2)
+	frame:SetScript("OnEvent", function(_, event, arg1, arg2)
 		-- Handles when the addon loads
 		if event == "PLAYER_LOGIN" then
 			if not WagoAnalyticsSV then
@@ -114,6 +113,7 @@ do
 				end
 			end
 			-- Hooks into BugSack
+			local BugGrabber = _G["BugGrabber"]
 			if BugGrabber and BugGrabber.RegisterCallback then
 				BugGrabber.RegisterCallback(addon, "BugGrabber_BugGrabbed", function(_, error)
 					handleError(error.message, error.stack and true or nil, error)
@@ -142,8 +142,8 @@ do
 			handleError(arg2, true)
 		-- Handles when the player closes the game or logs out
 		elseif event == "ADDONS_UNLOADING" then
-			for _, addon in pairs(registeredAddons) do
-				addon:Save()
+			for _, addonObj in pairs(registeredAddons) do
+				addonObj:Save()
 			end
 		end
 	end)
@@ -155,7 +155,7 @@ local CollectBufferElements
 do
 	local tinsert = table.insert
 
-	local function CollectBufferElements(buffer)
+	function CollectBufferElements(buffer)
 		local elements = {}
 
 		for i = buffer:GetNumElements(), 1, -1 do
@@ -177,11 +177,11 @@ function wagoPrototype:Counter(name, increment)
 		name = name:sub(0, 128)
 	end
 	if not self.counters[name] then
-		local elemLen = count[self.addon].counters
+		local elemLen = variableCount[self.addon].counters
 		if elemLen > 512 then
 			return false
 		end
-		count[self.addon].counters = elemLen + 1
+		variableCount[self.addon].counters = elemLen + 1
 	end
 	self.counters[name] = (self.counters[name] or 0) + (increment or 1)
 end
@@ -194,16 +194,16 @@ function wagoPrototype:Gauge(name, value)
 	if #name > 128 then
 		name = name:sub(0, 128)
 	end
-	local elemLen = count[self.addon].gauges
+	local elemLen = variableCount[self.addon].gauges
 	if elemLen > 512 then
 		return false
 	end
-	count[self.addon].gauges = elemLen + 1
+	variableCount[self.addon].gauges = elemLen + 1
 	self.gauges[name] = value
 end
 
 do
-	local tinsert, unpack = table.insert, unpack
+	local tinsert = table.insert
 
 	function wagoPrototype:Error(error)
 		if type(error) ~= "string" then
@@ -223,7 +223,7 @@ do
 end
 
 do
-	local tremove, tinsert, type = table.remove, table.insert, type
+	local type = type
 
 	function wagoPrototype:Breadcrumb(data)
 		if type(data) ~= "string" then
@@ -237,7 +237,7 @@ do
 end
 
 do
-	local gsub, format, random, time, pairs, tinsert = string.gsub, string.format, math.random, time, pairs, table.insert
+	local gsub, format, random, time, pairs = string.gsub, string.format, math.random, time, pairs
 
 	function wagoPrototype:Save()
 		if not SV then
@@ -276,7 +276,7 @@ do
 			SV = WagoAnalyticsSV[uuid]
 		end
 		-- Prevent saving addon data if there's no analytics
-		if count[self.addon].counters > 0 or count[self.addon].gauges > 0 or #errors > 0 then
+		if variableCount[self.addon].counters > 0 or variableCount[self.addon].gauges > 0 or #self.errors > 0 then
 			SV['data'][self.addon] = {
 				counters = self.counters,
 				gauges = self.gauges,
@@ -289,9 +289,9 @@ end
 do
 	local CreateCircularBuffer, mmin, setmetatable = CreateCircularBuffer, math.min, setmetatable
 
-	function WagoAnalytics:Register(addon, options)
-		if registeredAddons[addon] then
-			return registeredAddons[addon]
+	function WagoAnalytics:Register(addonName, options)
+		if registeredAddons[addonName] then
+			return registeredAddons[addonName]
 		end
 		if not options then
 			options = {}
@@ -300,7 +300,7 @@ do
 			options.reportErrors = true
 		end
 		local obj = setmetatable({
-			addon = addon,
+			addon = addonName,
 			options = options,
 			counters = {},
 			gauges = {},
@@ -309,8 +309,8 @@ do
 		}, {
 			__index = wagoPrototype
 		})
-		registeredAddons[addon] = obj
-		count[addon] = {
+		registeredAddons[addonName] = obj
+		variableCount[addonName] = {
 			counters = 0,
 			gauges = 0
 		}
