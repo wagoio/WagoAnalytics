@@ -1,0 +1,49 @@
+name: Package addon
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+    paths-ignore:
+      - '.github/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout addon
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 100
+
+      - name: Create Retail Package
+        uses: BigWigsMods/packager@master
+        env:
+          WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
+          GITHUB_OAUTH: ${{ env.GITHUB_TOKEN }}
+
+      - name: Create Classic Package
+        uses: BigWigsMods/packager@master
+        with:
+          args: -g classic
+        env:
+          WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
+          GITHUB_OAUTH: ${{ env.GITHUB_TOKEN }}
+
+      - name: Create BCC Package
+        uses: BigWigsMods/packager@master
+        with:
+          args: -g bcc
+        env:
+          WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
+          GITHUB_OAUTH: ${{ env.GITHUB_TOKEN }}
+
+      - name: Send Status to Discord
+        uses: nebularg/actions-discord-webhook@v1
+        with:
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          status: ${{ job.status }}
+        if: always()

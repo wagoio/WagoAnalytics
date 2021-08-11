@@ -1,8 +1,11 @@
 ## Interface: 90100
+## Interface-Classic: 11307
+## Interface-BCC: 20501
 ## Title: WagoAnalytics
 ## Version: 1.0
 ## SavedVariables: WagoAnalyticsSV
 ## LoadOnDemand: 0
 ## Author: Wago Addons Team
+## X-Wago-ID: qv63o6bQ
 
 WagoAnalytics.lua
