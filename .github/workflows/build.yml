@@ -15,10 +15,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout addon
-        uses: actions/checkout@v1
-        with:
-          fetch-depth: 100
+      - name: Checkout main
+        uses: actions/checkout@master
 
       - name: Install and run Luacheck
         uses: nebularg/actions-luacheck@v1
@@ -32,6 +30,9 @@ jobs:
       - test
 
     steps:
+      - name: Checkout main
+        uses: actions/checkout@master
+
       - name: Create Retail Package
         uses: BigWigsMods/packager@master
         env:
@@ -60,6 +61,9 @@ jobs:
     needs: [test, package]
 
     steps:
+      - name: Checkout main
+        uses: actions/checkout@master
+
       - name: Send Status to Discord
         uses: nebularg/actions-discord-webhook@v1
         with:
