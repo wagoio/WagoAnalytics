@@ -237,44 +237,44 @@ do
 end
 
 do
-	local gsub, format, random, time, pairs = string.gsub, string.format, math.random, time, pairs
+	local gsub, format, random, time, pairs, next = string.gsub, string.format, math.random, time, pairs, next
+
+    local function stripExcessAnalyticsEntries()
+        local count, lastK, lastTime = 0, nil, math.huge
+            for k, v in pairs(WagoAnalyticsSV) do
+                count = count + 1
+                if v.time < lastTime then
+                    lastK = k
+                    lastTime = v.time
+                end
+                if count > 2 then
+                    WagoAnalyticsSV[lastK] = nil
+                    break
+                end
+            end
+    end
 
 	function wagoPrototype:Save()
 		if not SV then
-			local uuid = gsub("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "x", function()
-				return format("%x", random(0, 0xf))
-			end)
-			WagoAnalyticsSV[uuid] = {
-				data = {},
-				time = time(),
-				addons = playerAddons,
-				playerData = {
-					name = playerName,
-					realm = playerRealm,
-					locale = playerLocale,
-					class = playerClass,
-					region = playerRegion,
-					specs = playerSpecs,
-					levelMin = playerMinLevel,
-					levelMax = playerMaxLevel,
-					race = playerRace,
-					faction = playerFaction
-				}
-			}
-			local count, lastK, lastTime = 0, nil, math.huge
-			for k, v in pairs(WagoAnalyticsSV) do
-				count = count + 1
-				if v.time < lastTime then
-					lastK = k
-					lastTime = v.time
-				end
-				if count > 256 then
-					WagoAnalyticsSV[lastK] = nil
-					break
-				end
-			end
-			SV = WagoAnalyticsSV[uuid]
+		    SV = {
+                data = {},
+                time = time(),
+                addons = playerAddons,
+                playerData = {
+                    name = playerName,
+                    realm = playerRealm,
+                    locale = playerLocale,
+                    class = playerClass,
+                    region = playerRegion,
+                    specs = playerSpecs,
+                    levelMin = playerMinLevel,
+                    levelMax = playerMaxLevel,
+                    race = playerRace,
+                    faction = playerFaction
+                }
+            }
 		end
+
 		-- Prevent saving addon data if there's no analytics
 		if variableCount[self.addon].counters > 0 or variableCount[self.addon].gauges > 0 or #self.errors > 0 then
 			SV['data'][self.addon] = {
@@ -283,6 +283,15 @@ do
 				errors = self.errors
 			}
 		end
+
+		if next(SV['data']) == nil then return end
+
+        local uuid = gsub("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "x", function()
+            return format("%x", random(0, 0xf))
+        end)
+        WagoAnalyticsSV[uuid] = SV
+
+        stripExcessAnalyticsEntries()
 	end
 end
 
