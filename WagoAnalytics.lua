@@ -239,59 +239,61 @@ end
 do
 	local gsub, format, random, time, pairs, next = string.gsub, string.format, math.random, time, pairs, next
 
-    local function stripExcessAnalyticsEntries()
-        local count, lastK, lastTime = 0, nil, math.huge
-            for k, v in pairs(WagoAnalyticsSV) do
-                count = count + 1
-                if v.time < lastTime then
-                    lastK = k
-                    lastTime = v.time
-                end
-                if count > 2 then
-                    WagoAnalyticsSV[lastK] = nil
-                    break
-                end
-            end
-    end
+	local function StripExcessAnalyticsEntries()
+		local count, lastTime, lastK = 0, math.huge
+		for k, v in pairs(WagoAnalyticsSV) do
+			count = count + 1
+			if v.time < lastTime then
+				lastK = k
+				lastTime = v.time
+			end
+			if count > 2 then
+				WagoAnalyticsSV[lastK] = nil
+				break
+			end
+		end
+	end
 
 	function wagoPrototype:Save()
 		if not SV then
-		    SV = {
-                data = {},
-                time = time(),
-                addons = playerAddons,
-                playerData = {
-                    name = playerName,
-                    realm = playerRealm,
-                    locale = playerLocale,
-                    class = playerClass,
-                    region = playerRegion,
-                    specs = playerSpecs,
-                    levelMin = playerMinLevel,
-                    levelMax = playerMaxLevel,
-                    race = playerRace,
-                    faction = playerFaction
-                }
-            }
+			SV = {
+				data = {},
+				time = time(),
+				addons = playerAddons,
+				playerData = {
+					name = playerName,
+					realm = playerRealm,
+					locale = playerLocale,
+					class = playerClass,
+					region = playerRegion,
+					specs = playerSpecs,
+					levelMin = playerMinLevel,
+					levelMax = playerMaxLevel,
+					race = playerRace,
+					faction = playerFaction
+				}
+			}
 		end
 
 		-- Prevent saving addon data if there's no analytics
 		if variableCount[self.addon].counters > 0 or variableCount[self.addon].gauges > 0 or #self.errors > 0 then
-			SV['data'][self.addon] = {
+			SV.data[self.addon] = {
 				counters = self.counters,
 				gauges = self.gauges,
 				errors = self.errors
 			}
 		end
 
-		if next(SV['data']) == nil then return end
+		if not next(SV.data) then
+			return
+		end
 
-        local uuid = gsub("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "x", function()
-            return format("%x", random(0, 0xf))
-        end)
-        WagoAnalyticsSV[uuid] = SV
+		local uuid = gsub("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "x", function()
+			return format("%x", random(0, 0xf))
+		end)
+		WagoAnalyticsSV[uuid] = SV
 
-        stripExcessAnalyticsEntries()
+		StripExcessAnalyticsEntries()
 	end
 end
 
