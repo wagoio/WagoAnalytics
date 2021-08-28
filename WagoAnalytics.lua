@@ -17,7 +17,7 @@ WagoAnalytics:Breadcrumb("Some useful debug information here.")
 WagoAnalytics:Counter("SomeCounter", 50)
 
 -- Set a boolean arg1 value to arg2 or true
-WagoAnalytics:Gauge("SomeGauge")
+WagoAnalytics:Switch("SomeSwitch")
 
 -- Throw a custom error message arg1. This includes the previous breadcrumbs automatically.
 WagoAnalytics:Error("Variable was expected to be defined, but wasn't")
@@ -186,7 +186,7 @@ function wagoPrototype:Counter(name, increment)
 	self.counters[name] = (self.counters[name] or 0) + (increment or 1)
 end
 
-function wagoPrototype:Gauge(name, value)
+function wagoPrototype:Switch(name, value)
 	value = value == nil and true or value
 	if type(name) ~= "string" or type(value) ~= "boolean" then
 		return false
@@ -194,12 +194,12 @@ function wagoPrototype:Gauge(name, value)
 	if #name > 128 then
 		name = name:sub(0, 128)
 	end
-	local elemLen = variableCount[self.addon].gauges
+	local elemLen = variableCount[self.addon].switches
 	if elemLen > 512 then
 		return false
 	end
-	variableCount[self.addon].gauges = elemLen + 1
-	self.gauges[name] = value
+	variableCount[self.addon].switches = elemLen + 1
+	self.switches[name] = value
 end
 
 do
@@ -276,10 +276,10 @@ do
 		end
 
 		-- Prevent saving addon data if there's no analytics
-		if variableCount[self.addon].counters > 0 or variableCount[self.addon].gauges > 0 or #self.errors > 0 then
+		if variableCount[self.addon].counters > 0 or variableCount[self.addon].switches > 0 or #self.errors > 0 then
 			SV.data[self.addon] = {
 				counters = self.counters,
-				gauges = self.gauges,
+				switches = self.switches,
 				errors = self.errors
 			}
 		end
@@ -314,7 +314,7 @@ do
 			addon = addonName,
 			options = options,
 			counters = {},
-			gauges = {},
+			switches = {},
 			errors = {},
 			breadcrumbs = CreateCircularBuffer(mmin(options.breadcrumbCount or 20, 50))
 		}, {
@@ -323,7 +323,7 @@ do
 		registeredAddons[addonName] = obj
 		variableCount[addonName] = {
 			counters = 0,
-			gauges = 0
+			switches = 0
 		}
 		return obj
 	end
