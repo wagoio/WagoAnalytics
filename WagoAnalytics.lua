@@ -169,21 +169,29 @@ end
 
 local wagoPrototype = {}
 
-function wagoPrototype:Counter(name, increment)
-	if type(name) ~= "string" then
-		return false
-	end
-	if #name > 128 then
-		name = name:sub(0, 128)
-	end
-	if not self.counters[name] then
-		local elemLen = variableCount[self.addon].counters
-		if elemLen > 512 then
-			return false
-		end
-		variableCount[self.addon].counters = elemLen + 1
-	end
-	self.counters[name] = (self.counters[name] or 0) + (increment or 1)
+function wagoPrototype:IncrementCounter(name, increment)
+	return self.SetCounter((self.counters[name] or 0) + (increment or 1))
+end
+
+function wagoPrototype:DecrementCounter(name, decrement)
+    return self.SetCounter((self.counters[name] or 0) - (decrement or 1))
+end
+
+function wagoPrototype:SetCounter(name, value)
+    if type(name) ~= "string" then
+        return false
+    end
+    if #name > 128 then
+        name = name:sub(0, 128)
+    end
+    if not self.counters[name] then
+        local elemLen = variableCount[self.addon].counters
+        if elemLen > 512 then
+            return false
+        end
+        variableCount[self.addon].counters = elemLen + 1
+    end
+    self.counters[name] = value
 end
 
 function wagoPrototype:Switch(name, value)
