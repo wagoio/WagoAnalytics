@@ -169,8 +169,12 @@ end
 
 local wagoPrototype = {}
 
-function wagoPrototype:Counter(name, increment)
+function wagoPrototype:IncrementCounter(name, increment)
 	return self.SetCounter((self.counters[name] or 0) + (increment or 1))
+end
+
+function wagoPrototype:DecrementCounter(name, decrement)
+    return self.SetCounter((self.counters[name] or 0) - (decrement or 1))
 end
 
 function wagoPrototype:SetCounter(name, value)
