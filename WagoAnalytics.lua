@@ -34,8 +34,8 @@ local registeredAddons, playerSpecs, playerAddons, variableCount = {}, {}, {}, {
 do
 	local tostring, pairs, ipairs, debugstack, debuglocals, tIndexOf, tinsert, match =
 		tostring, pairs, ipairs, debugstack, debuglocals, tIndexOf, table.insert, string.match
-	local GetLocale, UnitFactionGroup, GetCurrentRegion, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, UnitClassBase, UnitLevel, UnitRace, GetSpecialization, GetSpecializationInfo =
-		GetLocale, UnitFactionGroup, GetCurrentRegion, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, UnitClassBase, UnitLevel, UnitRace, GetSpecialization, GetSpecializationInfo
+	local GetLocale, UnitFactionGroup, GetCurrentRegion, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, UnitClass, UnitLevel, UnitRace, GetSpecialization, GetSpecializationInfo =
+		GetLocale, UnitFactionGroup, GetCurrentRegion, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, UnitClass, UnitLevel, UnitRace, GetSpecialization, GetSpecializationInfo
 
 	-- isSimple 3 state: True is simple, False is pcall, Nil is not simple
 	local function handleError(errorMessage, isSimple, errorObj)
@@ -91,7 +91,7 @@ do
 			if not WagoAnalyticsSV then
 				WagoAnalyticsSV = {}
 			end
-			playerClass = UnitClassBase("player")
+			_, _, playerClass = UnitClass("player")
 			local currentSpec = GetSpecialization()
 			if currentSpec then
 				local _, playerSpec = GetSpecializationInfo(currentSpec)
