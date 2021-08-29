@@ -91,7 +91,8 @@ do
 			if not WagoAnalyticsSV then
 				WagoAnalyticsSV = {}
 			end
-			_, _, playerClass = UnitClass("player")
+			local _, _, _playerClass = UnitClass("player")
+			playerClass = _playerClass
 			local currentSpec = GetSpecialization()
 			if currentSpec then
 				local _, playerSpec = GetSpecializationInfo(currentSpec)

@@ -30,7 +30,7 @@ globals = {
 	"GetSpecializationInfo",
 	"InCombatLockdown",
 	"UnitAffectingCombat",
-	"UnitClassBase",
+	"UnitClass",
 	"UnitFactionGroup",
 	"UnitLevel",
 	"UnitName",
