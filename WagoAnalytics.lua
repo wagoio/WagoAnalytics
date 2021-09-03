@@ -95,10 +95,10 @@ do
 			playerClass = _playerClass
 			local currentSpec = GetSpecialization()
 			if currentSpec then
-				local _, playerSpec = GetSpecializationInfo(currentSpec)
+				local playerSpec = GetSpecializationInfo(currentSpec)
 				tinsert(playerSpecs, playerSpec)
 			end
-			local _, _playerRace = UnitRace("player")
+			local _, _, _playerRace = UnitRace("player")
 			playerRace = _playerRace
 			playerFaction = UnitFactionGroup("player") or "Neutral"
 			playerMinLevel = UnitLevel("player")
