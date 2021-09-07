@@ -31,6 +31,8 @@ local WagoAnalytics = WagoAnalytics
 local SV, playerClass, playerRegion, playerMinLevel, playerMaxLevel, playerRace, playerFaction, playerLocale, playerName, playerRealm
 local registeredAddons, playerSpecs, playerAddons, variableCount = {}, {}, {}, {}
 
+local isRetail = WOW_PROJECT_ID == (WOW_PROJECT_MAINLINE or 1)
+
 do
 	local tostring, pairs, ipairs, debugstack, debuglocals, tIndexOf, tinsert, match =
 		tostring, pairs, ipairs, debugstack, debuglocals, tIndexOf, table.insert, string.match
@@ -77,13 +79,15 @@ do
 
 	local frame = CreateFrame("Frame")
 	frame:RegisterEvent("PLAYER_LOGIN")
-	frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 	frame:RegisterEvent("PLAYER_LEVEL_UP")
 	frame:RegisterEvent("ADDON_LOADED")
 	frame:RegisterEvent("ADDON_ACTION_BLOCKED")
 	frame:RegisterEvent("ADDON_ACTION_FORBIDDEN")
 	frame:RegisterEvent("LUA_WARNING")
 	frame:RegisterEvent("ADDONS_UNLOADING")
+	if isRetail then
+		frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+	end
 
 	frame:SetScript("OnEvent", function(_, event, arg1, arg2)
 		-- Handles when the addon loads
@@ -93,10 +97,12 @@ do
 			end
 			local _, _, _playerClass = UnitClass("player")
 			playerClass = _playerClass
-			local currentSpec = GetSpecialization()
-			if currentSpec then
-				local playerSpec = GetSpecializationInfo(currentSpec)
-				tinsert(playerSpecs, playerSpec)
+			if isRetail then
+				local currentSpec = GetSpecialization()
+				if currentSpec then
+					local playerSpec = GetSpecializationInfo(currentSpec)
+					tinsert(playerSpecs, playerSpec)
+				end
 			end
 			local _, _, _playerRace = UnitRace("player")
 			playerRace = _playerRace

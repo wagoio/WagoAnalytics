@@ -17,6 +17,10 @@ globals = {
 	"time",
 	"tIndexOf",
 
+	-- WoW Constants
+	"WOW_PROJECT_MAINLINE",
+	"WOW_PROJECT_ID",
+
 	-- WoW API
 	"CreateCircularBuffer",
 	"CreateFrame",
