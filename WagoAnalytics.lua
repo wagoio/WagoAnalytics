@@ -130,7 +130,7 @@ do
 		elseif event == "PLAYER_SPECIALIZATION_CHANGED" then
 			local currentSpec = GetSpecialization()
 			if currentSpec then
-				local _, playerSpec = GetSpecializationInfo(currentSpec)
+				local playerSpec = GetSpecializationInfo(currentSpec)
 				if not tIndexOf(playerSpecs, playerSpec) then
 					tinsert(playerSpecs, playerSpec)
 				end
