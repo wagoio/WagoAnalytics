@@ -42,7 +42,7 @@ do
 	-- isSimple 3 state: True is simple, False is pcall, Nil is not simple
 	local function handleError(errorMessage, isSimple, errorObj)
 		errorMessage = tostring(errorMessage)
-		local wagoID = GetAddOnMetadata(match(errorMessage, "AddOns\\([^\\]+)\\") or "Unknown", "X-Wago-ID")
+		local wagoID = GetAddOnMetadata(match(errorMessage, "AddOns[\\/]([^\\/]+)[\\/]") or "Unknown", "X-Wago-ID")
 		if not wagoID or not registeredAddons[wagoID] then
 			return
 		end
