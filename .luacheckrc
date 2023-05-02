@@ -22,6 +22,7 @@ globals = {
 	"WOW_PROJECT_ID",
 
 	-- WoW API
+	"C_AddOns",
 	"CreateCircularBuffer",
 	"CreateFrame",
 	"GetAddOnInfo",
