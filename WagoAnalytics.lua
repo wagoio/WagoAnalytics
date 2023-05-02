@@ -36,8 +36,9 @@ local isRetail = WOW_PROJECT_ID == (WOW_PROJECT_MAINLINE or 1)
 do
 	local tostring, pairs, ipairs, debugstack, debuglocals, tIndexOf, tinsert, match =
 		tostring, pairs, ipairs, debugstack, debuglocals, tIndexOf, table.insert, string.match
-	local GetLocale, UnitFactionGroup, GetCurrentRegion, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, UnitClass, UnitLevel, UnitRace, GetSpecialization, GetSpecializationInfo =
-		GetLocale, UnitFactionGroup, GetCurrentRegion, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, GetAddOnMetadata, CreateFrame, UnitClass, UnitLevel, UnitRace, GetSpecialization, GetSpecializationInfo
+	local GetLocale, UnitFactionGroup, GetCurrentRegion, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, CreateFrame, UnitClass, UnitLevel, UnitRace, GetSpecialization, GetSpecializationInfo =
+		GetLocale, UnitFactionGroup, GetCurrentRegion, UnitAffectingCombat, InCombatLockdown, GetNumAddOns, GetAddOnInfo, CreateFrame, UnitClass, UnitLevel, UnitRace, GetSpecialization, GetSpecializationInfo
+	local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
 
 	-- isSimple 3 state: True is simple, False is pcall, Nil is not simple
 	local function handleError(errorMessage, isSimple, errorObj)
