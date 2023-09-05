@@ -20,10 +20,7 @@ WagoAnalytics:Counter("SomeCounter", 50)
 WagoAnalytics:Switch("SomeSwitch")
 
 -- Throw a custom error message arg1. This includes the previous breadcrumbs automatically.
-WagoAnalytics:Error({
-  message = "Variable was expected to be defined, but wasn't",
-  stack = debugstack()
-})
+WagoAnalytics:Error("Variable was expected to be defined, but wasn't")
 --]]
 
 local _, addon = ...
@@ -225,7 +222,10 @@ do
 	local tinsert = table.insert
 
 	function wagoPrototype:Error(error)
-		if type(error) ~= "string" then
+		if type(error) == "string" then
+			return self:Error({ message = error })
+		end
+		if type(error) ~= "table" then
 			return false
 		end
 		if #self.errors > 512 then
