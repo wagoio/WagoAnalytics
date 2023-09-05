@@ -20,7 +20,10 @@ WagoAnalytics:Counter("SomeCounter", 50)
 WagoAnalytics:Switch("SomeSwitch")
 
 -- Throw a custom error message arg1. This includes the previous breadcrumbs automatically.
-WagoAnalytics:Error("Variable was expected to be defined, but wasn't")
+WagoAnalytics:Error({
+  message = "Variable was expected to be defined, but wasn't",
+  stack = debugstack()
+})
 --]]
 
 local _, addon = ...
