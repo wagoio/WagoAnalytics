@@ -231,8 +231,12 @@ do
 		if #self.errors > 512 then
 			return false
 		end
-		if #error > 1024 then
-			error = error:sub(0, 1021) .. "..."
+		-- Errors must contain at least a message
+		if not error.message then
+			return false
+		end
+		if #error.message > 1024 then
+			error.message = error.message:sub(0, 1021) .. "..."
 		end
 		tinsert(self.errors, {
 			error = error,
