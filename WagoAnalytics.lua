@@ -1,5 +1,5 @@
 --[[
-Follow the instructions located at https://github.com/methodgg/WagoAnalytics/tree/shim to use this.
+Follow the instructions located at https://github.com/wagoio/WagoAnalyticsShim to use this.
 
 Example Usage:
 
