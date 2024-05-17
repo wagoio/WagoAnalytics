@@ -85,7 +85,6 @@ do
 	frame:RegisterEvent("ADDON_ACTION_BLOCKED")
 	frame:RegisterEvent("ADDON_ACTION_FORBIDDEN")
 	frame:RegisterEvent("LUA_WARNING")
-	frame:RegisterEvent("ADDONS_UNLOADING")
 	if isRetail then
 		frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 	end
@@ -127,6 +126,7 @@ do
 					handleError(error.message, error.stack and true or nil, error)
 				end)
 			end
+			frame:RegisterEvent("ADDONS_UNLOADING")
 		-- Handles when the player changes their specialization
 		elseif event == "PLAYER_SPECIALIZATION_CHANGED" then
 			local currentSpec = GetSpecialization()
