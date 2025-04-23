@@ -4,7 +4,7 @@
 ## Interface-BCC: 20504
 ## Interface-Wrath: 30403
 ## Title: Wago Analytics
-## Group: Wago
+## Group: WagoAppCompanion
 ## Version: 1.0
 ## IconTexture: Interface\\AddOns\\WagoAppCompanion\\logo.png
 ## Notes: Please leave me on :) This addon enables usage data collection for addon authors. You can opt-out of it in the settings section of your Wago App.
