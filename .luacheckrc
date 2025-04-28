@@ -19,10 +19,16 @@ globals = {
 
 	-- WoW Constants
 	"WOW_PROJECT_MAINLINE",
+	"WOW_PROJECT_MISTS_CLASSIC",
+	"WOW_PROJECT_CATACLYSM_CLASSIC",
 	"WOW_PROJECT_ID",
 
 	-- WoW API
-	"C_AddOns",
+	"C_AddOns.GetAddOnInfo",
+	"C_AddOns.GetAddOnMetadata",
+	"C_AddOns.GetNumAddOns",
+	"C_SpecializationInfo.GetSpecialization", -- MoP only
+	"C_SpecializationInfo.GetSpecializationInfo", -- MoP only
 	"CreateCircularBuffer",
 	"CreateFrame",
 	"GetAddOnInfo",
@@ -30,9 +36,11 @@ globals = {
 	"GetCurrentRegion",
 	"GetLocale",
 	"GetNumAddOns",
+	"GetPrimaryTalentTree", -- Cata only
 	"GetRealmName",
-	"GetSpecialization",
-	"GetSpecializationInfo",
+	"GetSpecialization", -- Retail only
+	"GetSpecializationInfo", -- Retail only
+	"GetTalentTabInfo", -- Cata only
 	"InCombatLockdown",
 	"UnitAffectingCombat",
 	"UnitClass",
